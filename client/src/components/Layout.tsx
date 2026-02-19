@@ -63,11 +63,11 @@ function Navigation() {
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${navBg}`}>
       <div className="container">
         <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 shrink-0">
             <img
               src={config.logoUrl}
               alt={config.name}
-              className="h-10 w-auto"
+              className="h-10 w-auto max-w-[180px] object-contain object-left"
             />
           </Link>
 
