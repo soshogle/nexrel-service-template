@@ -79,6 +79,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePersistFn } from "@/hooks/usePersistFn";
 import { cn } from "@/lib/utils";
+import { useAgencyConfig } from "@/contexts/AgencyConfigContext";
 
 declare global {
   interface Window {
@@ -86,15 +87,10 @@ declare global {
   }
 }
 
-// Backend proxy: key stays on server (GOOGLE_MAPS_API_KEY), works for all domains, no referrer restrictions
-const MAP_SCRIPT_URL = "/api/maps/js?v=weekly&libraries=marker,places,geocoding,geometry";
+const MAP_SCRIPT_BASE = "/api/maps/js?v=weekly&libraries=marker,places,geocoding,geometry";
 
-function getMapScriptUrl(): string | null {
-  return MAP_SCRIPT_URL;
-}
-
-function loadMapScript(): Promise<void> {
-  const url = getMapScriptUrl();
+function loadMapScript(scriptUrl: string | null | undefined): Promise<void> {
+  const url = scriptUrl || MAP_SCRIPT_BASE;
   if (!url) {
     return Promise.reject(new Error("Maps not configured"));
   }
@@ -125,13 +121,17 @@ export function MapView({
   initialZoom = 12,
   onMapReady,
 }: MapViewProps) {
+  const config = useAgencyConfig();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const init = usePersistFn(async () => {
+    const scriptUrl = config.mapsScriptUrl
+      ? `${config.mapsScriptUrl}?v=weekly&libraries=marker,places,geocoding,geometry`
+      : MAP_SCRIPT_BASE;
     try {
-      await loadMapScript();
+      await loadMapScript(scriptUrl);
     } catch (e) {
       setError("Map unavailable");
       return;
@@ -148,6 +148,7 @@ export function MapView({
       zoomControl: true,
       streetViewControl: true,
       mapId: "DEMO_MAP_ID",
+      gestureHandling: "greedy", // Scroll zooms map directly (no ⌘+scroll needed)
     });
     if (onMapReady) {
       onMapReady(map.current);
@@ -161,7 +162,7 @@ export function MapView({
   if (error) {
     return (
       <div className={cn("w-full h-[500px] flex items-center justify-center bg-muted text-muted-foreground", className)}>
-        Map unavailable — add GOOGLE_MAPS_API_KEY in Vercel env vars
+        Map unavailable — ensure GOOGLE_MAPS_API_KEY is set in the CRM
       </div>
     );
   }

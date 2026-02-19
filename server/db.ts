@@ -90,6 +90,7 @@ export async function getProperties(opts?: {
   minPrice?: number;
   maxPrice?: number;
   bedrooms?: number;
+  bathrooms?: number;
   city?: string;
   search?: string;
   status?: string;
@@ -122,6 +123,9 @@ export async function getProperties(opts?: {
   }
   if (opts?.bedrooms) {
     conditions.push(eq(schema.properties.bedrooms, opts.bedrooms));
+  }
+  if (opts?.bathrooms != null && opts.bathrooms > 0) {
+    conditions.push(sql`COALESCE(${schema.properties.bathrooms}, 0) >= ${opts.bathrooms}`);
   }
   if (opts?.city) {
     conditions.push(ilike(schema.properties.city, `%${opts.city}%`));

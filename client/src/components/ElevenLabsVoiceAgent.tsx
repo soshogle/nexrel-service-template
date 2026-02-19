@@ -53,6 +53,7 @@ function buildPageContextJson(pageCtx: {
   pageType: string;
   visibleListings: any[];
   selectedListing: any;
+  searchAddress?: string | null;
 }) {
   const visible = (pageCtx.visibleListings || []).slice(0, 10).map((p) => ({
     slug: p.slug,
@@ -80,6 +81,7 @@ function buildPageContextJson(pageCtx: {
     pageType: pageCtx.pageType,
     visibleListings: visible,
     selectedListing: selected,
+    searchAddress: pageCtx.searchAddress ?? null,
   });
 }
 
@@ -130,16 +132,32 @@ export default function ElevenLabsVoiceAgent({ agentId, websiteId, customPrompt,
     if (!pageCtx) return undefined;
     const { navigate } = pageCtx;
     return {
-      searchListings: async (params: { bedrooms?: number; city?: string; listing_type?: string }) => {
+      searchListings: async (params: {
+        bedrooms?: number;
+        bathrooms?: number;
+        city?: string;
+        search?: string;
+        listing_type?: string;
+        property_type?: string;
+        min_price?: number;
+        max_price?: number;
+      }) => {
         const q = new URLSearchParams();
         if (params.bedrooms) q.set("bedrooms", String(params.bedrooms));
+        if (params.bathrooms) q.set("bathrooms", String(params.bathrooms));
         if (params.city) q.set("city", params.city);
+        if (params.search) q.set("search", params.search);
         if (params.listing_type) q.set("listing_type", params.listing_type);
+        if (params.property_type) q.set("property_type", params.property_type);
+        if (params.min_price) q.set("min_price", String(params.min_price));
+        if (params.max_price) q.set("max_price", String(params.max_price));
+        const path = params.listing_type === "rent" ? "/for-lease" : "/for-sale";
+        if (params.listing_type === "rent") q.set("listing_type", "rent");
+        else if (params.listing_type === "sale") q.set("listing_type", "sale");
         const res = await fetch(`/api/listings?${q.toString()}`);
         const data = await res.json();
         if (!res.ok) return `Error: ${data.error || "Failed to search"}`;
         const items = data.items || [];
-        const path = params.listing_type === "rent" ? "/for-lease" : "/for-sale";
         navigate(`${path}?${q.toString()}`);
         if (items.length === 0) return "No listings found matching your criteria.";
         const summary = items.slice(0, 5).map((p: any) => `${p.title} at $${parseFloat(p.price || 0).toLocaleString()}${p.priceLabel ? "/" + p.priceLabel : ""}`).join("; ");
@@ -213,6 +231,10 @@ export default function ElevenLabsVoiceAgent({ agentId, websiteId, customPrompt,
           current_day: new Date().toLocaleDateString("en-US", { weekday: "long", timeZone: "America/New_York" }),
           timezone: "America/New_York",
           current_date_time_eastern: getEasternTimeContext(),
+          ...(pageCtx?.searchAddress && {
+            user_searched_address: pageCtx.searchAddress,
+            user_area_of_interest: pageCtx.searchAddress,
+          }),
         },
         onConnect: () => {
           clearTimeoutIfConnected();

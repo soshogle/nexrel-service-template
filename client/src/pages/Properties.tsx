@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { usePageContextOptional } from "@/contexts/PageContext";
 import { useAgencyConfig } from "@/contexts/AgencyConfigContext";
@@ -64,33 +64,36 @@ function PropertyCard({ property }: { property: any }) {
 }
 
 function PropertyMapView({ properties }: { properties: any[] }) {
+  const pageCtx = usePageContextOptional();
+  const mapRef = useRef<google.maps.Map | null>(null);
   const propertiesWithCoords = properties.filter(p => p.latitude && p.longitude);
 
-  const handleMapReady = (map: google.maps.Map) => {
-    if (propertiesWithCoords.length === 0) return;
+  const handleMapReady = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
 
-    const bounds = new google.maps.LatLngBounds();
+    if (propertiesWithCoords.length > 0) {
+      const bounds = new google.maps.LatLngBounds();
 
-    propertiesWithCoords.forEach((property) => {
-      const position = { lat: parseFloat(property.latitude), lng: parseFloat(property.longitude) };
-      bounds.extend(position);
+      propertiesWithCoords.forEach((property) => {
+        const position = { lat: parseFloat(property.latitude), lng: parseFloat(property.longitude) };
+        bounds.extend(position);
 
-      const marker = new google.maps.Marker({
-        position,
-        map,
-        title: property.title,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          fillColor: "#86C0C7",
-          fillOpacity: 1,
-          strokeColor: "#214359",
-          strokeWeight: 2,
-          scale: 10,
-        },
-      });
+        const marker = new google.maps.Marker({
+          position,
+          map,
+          title: property.title,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: "#86C0C7",
+            fillOpacity: 1,
+            strokeColor: "#214359",
+            strokeWeight: 2,
+            scale: 10,
+          },
+        });
 
-      const infoWindow = new google.maps.InfoWindow({
-        content: `
+        const infoWindow = new google.maps.InfoWindow({
+          content: `
           <div style="max-width:280px;font-family:Inter,sans-serif;">
             <img src="${property.mainImageUrl}" alt="${property.title}" style="width:100%;height:150px;object-fit:cover;border-radius:4px;margin-bottom:8px;" />
             <h3 style="font-family:'Libre Baskerville',serif;font-size:16px;color:#214359;margin:0 0 4px;">${property.title}</h3>
@@ -99,33 +102,90 @@ function PropertyMapView({ properties }: { properties: any[] }) {
             <a href="/property/${property.slug}" style="display:inline-block;margin-top:8px;color:#86C0C7;font-size:13px;text-decoration:none;">View Details →</a>
           </div>
         `,
+        });
+
+        marker.addListener("click", () => {
+          infoWindow.open(map, marker);
+        });
       });
 
-      marker.addListener("click", () => {
-        infoWindow.open(map, marker);
-      });
-    });
-
-    map.fitBounds(bounds);
-    if (propertiesWithCoords.length === 1) {
-      map.setZoom(14);
+      map.fitBounds(bounds);
+      if (propertiesWithCoords.length === 1) {
+        map.setZoom(14);
+      }
     }
-  };
-
-  if (propertiesWithCoords.length === 0) {
-    return (
-      <div className="bg-muted rounded-sm h-[500px] flex items-center justify-center">
-        <p className="text-muted-foreground">No properties with location data available.</p>
-      </div>
-    );
-  }
+  }, [propertiesWithCoords]);
 
   return (
-    <div className="rounded-sm overflow-hidden h-[500px]">
-      <MapView
-        onMapReady={handleMapReady}
-        initialCenter={{ lat: 45.5017, lng: -73.5673 }}
-        initialZoom={12}
+    <div className="space-y-4">
+      <AddressSearchBar
+        onAddressSelect={(address, lat, lng) => {
+          if (mapRef.current) {
+            mapRef.current.panTo({ lat, lng });
+            mapRef.current.setZoom(15);
+          }
+          pageCtx?.setPageContext({ searchAddress: address });
+        }}
+      />
+      <div className="relative rounded-sm overflow-hidden h-[500px]">
+        <MapView
+          onMapReady={handleMapReady}
+          initialCenter={{ lat: 45.5017, lng: -73.5673 }}
+          initialZoom={12}
+        />
+        {propertiesWithCoords.length === 0 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 px-4 py-2 rounded shadow text-sm text-muted-foreground text-center max-w-md">
+            No properties with location data. Search an address above, then use the mic to tell the broker what you&apos;re looking for in this area.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Address search using Google Places Autocomplete. Pans map and sets page context for Voice AI. */
+function AddressSearchBar({ onAddressSelect }: { onAddressSelect: (address: string, lat: number, lng: number) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+    const check = () => {
+      if (typeof window !== "undefined" && window.google?.maps?.places) {
+        if (!autocompleteRef.current && inputRef.current) {
+          autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+            types: ["geocode", "establishment"],
+            fields: ["formatted_address", "geometry"],
+          });
+          autocompleteRef.current.addListener("place_changed", () => {
+            const place = autocompleteRef.current?.getPlace();
+            if (!place?.geometry?.location) return;
+            const address = place.formatted_address || "";
+            const lat = place.geometry.location.lat();
+            const lng = place.geometry.location.lng();
+            onAddressSelect(address, lat, lng);
+          });
+        }
+        setReady(true);
+        return true;
+      }
+      return false;
+    };
+    if (check()) return;
+    const id = setInterval(() => check(), 200);
+    return () => clearInterval(id);
+  }, [onAddressSelect]);
+
+  return (
+    <div className="relative">
+      <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        ref={inputRef}
+        type="text"
+        placeholder={ready ? "Search street or address — then use the mic to tell the broker what you want in this area" : "Loading map..."}
+        className="pl-12 h-12 rounded-sm border-[#214359]/20 focus:border-[#86C0C7]"
+        autoComplete="off"
       />
     </div>
   );
@@ -139,6 +199,19 @@ interface PropertiesProps {
   pageLabel?: string;
 }
 
+function parseSearchParams(search: string) {
+  const params = new URLSearchParams(search);
+  return {
+    bedrooms: params.get("bedrooms") || "all",
+    bathrooms: params.get("bathrooms") || "all",
+    city: params.get("city") || "",
+    propertyType: params.get("property_type") || "all",
+    listingType: params.get("listing_type") || "all",
+    minPrice: params.get("min_price") ? parseInt(params.get("min_price")!, 10) : undefined,
+    maxPrice: params.get("max_price") ? parseInt(params.get("max_price")!, 10) : undefined,
+  };
+}
+
 export default function Properties({ defaultListingType, defaultPropertyType, prestige, pageLabelKey, pageLabel = "Properties" }: PropertiesProps = {}) {
   const config = useAgencyConfig();
   const resolvedLabel = pageLabelKey ? (config.pageLabels[pageLabelKey] ?? pageLabel) : pageLabel;
@@ -149,7 +222,26 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
   const [propertyType, setPropertyType] = useState<string>(defaultPropertyType || "all");
   const [listingType, setListingType] = useState<string>(defaultListingType || "all");
   const [bedrooms, setBedrooms] = useState<string>("all");
+  const [bathrooms, setBathrooms] = useState<string>("all");
+  const [minPrice, setMinPrice] = useState<string>("");
+  const [maxPrice, setMaxPrice] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [location] = useLocation();
+
+  // Sync filters from URL when Voice AI navigates (e.g. /for-sale?bedrooms=2&city=Saint-Laurent&min_price=400000&max_price=500000)
+  const searchString = typeof window !== "undefined" ? window.location.search : "";
+  useEffect(() => {
+    const parsed = parseSearchParams(searchString);
+    if (parsed.bedrooms !== "all") setBedrooms(parsed.bedrooms);
+    if (parsed.bathrooms !== "all") setBathrooms(parsed.bathrooms);
+    if (parsed.city) setSearch(parsed.city);
+    if (parsed.propertyType !== "all") setPropertyType(parsed.propertyType);
+    if (parsed.listingType !== "all") setListingType(parsed.listingType);
+    else if (defaultListingType && location.includes("for-lease")) setListingType("rent");
+    else if (defaultListingType && location.includes("for-sale")) setListingType("sale");
+    if (parsed.minPrice != null && !Number.isNaN(parsed.minPrice)) setMinPrice(String(parsed.minPrice));
+    if (parsed.maxPrice != null && !Number.isNaN(parsed.maxPrice)) setMaxPrice(String(parsed.maxPrice));
+  }, [location, searchString, defaultListingType]);
 
   // Debounce search input
   useEffect(() => {
@@ -157,10 +249,16 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
     return () => clearTimeout(t);
   }, [search]);
 
+  const minPriceNum = minPrice.trim() ? parseInt(minPrice, 10) : undefined;
+  const maxPriceNum = maxPrice.trim() ? parseInt(maxPrice, 10) : undefined;
+
   const { data: propertiesData, isLoading } = trpc.properties.list.useQuery({
     propertyType: propertyType !== "all" ? propertyType : defaultPropertyType || undefined,
     listingType: (listingType !== "all" ? listingType : defaultListingType) as "sale" | "rent" | undefined,
     bedrooms: bedrooms !== "all" ? parseInt(bedrooms) : undefined,
+    bathrooms: bathrooms !== "all" ? parseInt(bathrooms) : undefined,
+    minPrice: minPriceNum != null && !Number.isNaN(minPriceNum) ? minPriceNum : undefined,
+    maxPrice: maxPriceNum != null && !Number.isNaN(maxPriceNum) ? maxPriceNum : undefined,
     search: searchDebounced.trim() || undefined,
     prestige: prestige,
     limit: 50,
@@ -168,7 +266,6 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
   });
 
   const sortedProperties = propertiesData?.items ?? [];
-  const [location] = useLocation();
   const pageCtx = usePageContextOptional();
 
   // Tell Voice AI what listings are on screen
@@ -308,6 +405,34 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
                 </SelectContent>
               </Select>
 
+              <Select value={bathrooms} onValueChange={setBathrooms}>
+                <SelectTrigger className="w-[140px] h-9 text-sm">
+                  <SelectValue placeholder="Bathrooms" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any Baths</SelectItem>
+                  <SelectItem value="1">1+ Bath</SelectItem>
+                  <SelectItem value="2">2+ Baths</SelectItem>
+                  <SelectItem value="3">3+ Baths</SelectItem>
+                  <SelectItem value="4">4+ Baths</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Input
+                type="number"
+                placeholder="Min price"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="w-[120px] h-9 text-sm"
+              />
+              <Input
+                type="number"
+                placeholder="Max price"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="w-[120px] h-9 text-sm"
+              />
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -315,6 +440,10 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
                   setPropertyType("all");
                   setListingType("all");
                   setBedrooms("all");
+                  setBathrooms("all");
+                  setMinPrice("");
+                  setMaxPrice("");
+                  setSearch("");
                 }}
                 className="text-sm text-muted-foreground"
               >
@@ -352,7 +481,7 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
           ) : (
             <div className="text-center py-20">
               <p className="text-muted-foreground text-lg">
-                {searchDebounced || propertyType !== "all" || listingType !== "all" || bedrooms !== "all"
+                {searchDebounced || propertyType !== "all" || listingType !== "all" || bedrooms !== "all" || bathrooms !== "all" || minPrice || maxPrice
                   ? "No properties match your filters."
                   : "No listings yet. Listings are synced from Centris.ca. Check back soon."}
               </p>
@@ -363,6 +492,9 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
                     setPropertyType("all");
                     setListingType("all");
                     setBedrooms("all");
+                    setBathrooms("all");
+                    setMinPrice("");
+                    setMaxPrice("");
                     setSearch("");
                   }}
                 >

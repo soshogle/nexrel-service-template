@@ -60,6 +60,7 @@ export const DEFAULT_AGENCY_CONFIG = {
   brokerName: "Real Estate Professional",
   name: "Your Agency",
   logoUrl: "/placeholder-logo.svg",
+  mapsScriptUrl: null as string | null,
   tagline: "Your trusted real estate partner",
   address: "",
   neighborhood: "",

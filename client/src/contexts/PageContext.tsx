@@ -24,11 +24,14 @@ export interface PageContextValue {
   pageType: "home" | "listings" | "property" | "other";
   visibleListings: ListingSummary[];
   selectedListing: ListingSummary | null;
+  /** Address/area the user searched on the map — used by Voice AI when user says "find a house here" */
+  searchAddress: string | null;
   setPageContext: (ctx: Partial<{
     path: string;
     pageType: PageContextValue["pageType"];
     visibleListings: ListingSummary[];
     selectedListing: ListingSummary | null;
+    searchAddress: string | null;
   }>) => void;
   /** Called by Voice Agent when conversation starts — used to push context updates */
   registerContextUpdater: (fn: (ctx: PageContextValue) => void) => () => void;
@@ -44,6 +47,7 @@ export function PageContextProvider({ children }: { children: ReactNode }) {
   const [pageType, setPageType] = useState<PageContextValue["pageType"]>("other");
   const [visibleListings, setVisibleListings] = useState<ListingSummary[]>([]);
   const [selectedListing, setSelectedListing] = useState<ListingSummary | null>(null);
+  const [searchAddress, setSearchAddress] = useState<string | null>(null);
   const [navigateFn, setNavigateFn] = useState<(path: string) => void>(() => (p: string) => { window.location.href = p; });
 
   const setPageContext = useCallback((ctx: Partial<PageContextValue>) => {
@@ -51,6 +55,7 @@ export function PageContextProvider({ children }: { children: ReactNode }) {
     if (ctx.pageType !== undefined) setPageType(ctx.pageType);
     if (ctx.visibleListings !== undefined) setVisibleListings(ctx.visibleListings);
     if (ctx.selectedListing !== undefined) setSelectedListing(ctx.selectedListing);
+    if (ctx.searchAddress !== undefined) setSearchAddress(ctx.searchAddress);
   }, []);
 
   // Notify Voice Agent when context changes (for sendContextualUpdate)
@@ -71,17 +76,18 @@ export function PageContextProvider({ children }: { children: ReactNode }) {
       pageType,
       visibleListings,
       selectedListing,
+      searchAddress,
       setPageContext,
       registerContextUpdater,
       navigate: navigateFn,
       setNavigate,
     }),
-    [path, pageType, visibleListings, selectedListing, setPageContext, registerContextUpdater, navigateFn, setNavigate]
+    [path, pageType, visibleListings, selectedListing, searchAddress, setPageContext, registerContextUpdater, navigateFn, setNavigate]
   );
 
   useEffect(() => {
-    updaterRef.current?.({ path, pageType, visibleListings, selectedListing, setPageContext, registerContextUpdater, navigate: navigateFn, setNavigate });
-  }, [path, pageType, visibleListings, selectedListing]);
+    updaterRef.current?.({ path, pageType, visibleListings, selectedListing, searchAddress, setPageContext, registerContextUpdater, navigate: navigateFn, setNavigate });
+  }, [path, pageType, visibleListings, selectedListing, searchAddress]);
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;
 }

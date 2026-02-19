@@ -54,11 +54,21 @@ export function createApp() {
   app.get("/api/listings", async (req, res) => {
     try {
       const bedrooms = req.query.bedrooms ? parseInt(String(req.query.bedrooms), 10) : undefined;
+      const bathroomsParam = req.query.bathrooms ? parseInt(String(req.query.bathrooms), 10) : undefined;
+      const minPrice = req.query.min_price ? parseInt(String(req.query.min_price), 10) : undefined;
+      const maxPrice = req.query.max_price ? parseInt(String(req.query.max_price), 10) : undefined;
       const city = (req.query.city as string) || undefined;
+      const search = (req.query.search as string) || undefined;
+      const propertyType = (req.query.property_type as string) || undefined;
       const listingType = (req.query.listing_type as string) || undefined;
       const result = await db.getProperties({
         bedrooms: Number.isNaN(bedrooms!) ? undefined : bedrooms,
+        bathrooms: Number.isNaN(bathroomsParam!) ? undefined : bathroomsParam,
+        minPrice: Number.isNaN(minPrice!) ? undefined : minPrice,
+        maxPrice: Number.isNaN(maxPrice!) ? undefined : maxPrice,
         city,
+        search,
+        propertyType: propertyType && ["condo", "house", "apartment", "townhouse"].includes(propertyType) ? propertyType : undefined,
         listingType: listingType === "sale" || listingType === "rent" ? listingType : undefined,
         limit: 20,
       });

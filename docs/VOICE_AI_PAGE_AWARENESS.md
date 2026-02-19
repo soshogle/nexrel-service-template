@@ -31,16 +31,47 @@ The Voice AI assistant can **see what the user sees** on the website and respond
 
 ## ElevenLabs Agent Setup
 
+### Option A: Programmatic (recommended)
+
+Run the CRM script to update all real estate website agents with the full tool schema:
+
+```bash
+npx tsx scripts/update-real-estate-agent-tools.ts
+```
+
+Or for a specific website:
+
+```bash
+npx tsx scripts/update-real-estate-agent-tools.ts <websiteId>
+```
+
+This updates the agent via the ElevenLabs API so the LLM knows about the new parameters (bathrooms, min_price, max_price, property_type).
+
+### Option B: Manual dashboard
+
 Configure these **client tools** in the [ElevenLabs Conversational AI](https://elevenlabs.io/app/conversational-ai) dashboard:
+
+1. Go to **Conversational AI** → **Your Agent** → **Customize** → **Tools**
+2. Add or edit the **searchListings** client tool
+3. Add each parameter below (name, type, description, optional)
 
 ### searchListings
 
 - **Name:** `searchListings`
-- **Description:** Search for property listings by criteria. Use when the user asks to see listings (e.g. "show me 3 bedroom homes in Montreal", "find rentals in Ville Saint-Laurent"). Updates the page to show results.
-- **Parameters:**
-  - `bedrooms` (number, optional) — Number of bedrooms
-  - `city` (string, optional) — City or neighborhood (e.g. "Ville Saint-Laurent", "Montreal")
-  - `listing_type` (string, optional) — "sale" or "rent"
+- **Description:** Search for property listings by criteria. Use when the user asks to see listings (e.g. "show me 2 bedroom houses in Saint-Laurent between 400000 and 500000", "find rentals in Ville Saint-Laurent", "2 bedroom apartments for rent under 2000"). Updates the page to show results on screen. Works for both **for sale** and **for rent**.
+- **Parameters** (add each in the dashboard):
+
+| Parameter       | Type   | Required | Description |
+|----------------|--------|----------|-------------|
+| `bedrooms`     | number | no       | Number of bedrooms (e.g. 2) |
+| `bathrooms`    | number | no       | Number of bathrooms (e.g. 2) |
+| `city`         | string | no       | City or neighborhood (e.g. "Ville Saint-Laurent", "Montreal") |
+| `listing_type` | string | no       | **"sale"** (for-sale) or **"rent"** (for-lease). Always pass "rent" when the user wants rentals. |
+| `property_type`| string | no       | One of: "house", "condo", "apartment", "townhouse" |
+| `min_price`    | number | no       | Minimum price (e.g. 400000) |
+| `max_price`    | number | no       | Maximum price (e.g. 500000) |
+
+For `property_type`, if the dashboard supports enum: add `["house", "condo", "apartment", "townhouse"]`.
 
 ### showListing
 
