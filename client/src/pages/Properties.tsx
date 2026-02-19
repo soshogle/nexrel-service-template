@@ -118,6 +118,9 @@ function PropertyMapView({ properties }: { properties: any[] }) {
 
   return (
     <div className="space-y-4">
+      <h2 className="font-serif text-2xl sm:text-3xl text-[#214359] text-center">
+        Find Your Dream Home
+      </h2>
       <AddressSearchBar
         onAddressSelect={(address, lat, lng) => {
           if (mapRef.current) {
@@ -125,6 +128,8 @@ function PropertyMapView({ properties }: { properties: any[] }) {
             mapRef.current.setZoom(15);
           }
           pageCtx?.setPageContext({ searchAddress: address });
+          // Auto-connect Voice AI so user can ask the agent what they want in this area
+          window.dispatchEvent(new CustomEvent("openVoiceAI", { detail: {} }));
         }}
       />
       <div className="relative rounded-sm overflow-hidden h-[500px]">
