@@ -114,6 +114,7 @@ export default function ElevenLabsVoiceAgent({ agentId, websiteId, customPrompt,
   const audioPulseRef = useRef<number>(0);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioConnectedRef = useRef(false);
 
   const buildSignedUrlParams = useCallback(() => {
     const params = new URLSearchParams({ agentId: agentId.trim() });
@@ -249,21 +250,27 @@ export default function ElevenLabsVoiceAgent({ agentId, websiteId, customPrompt,
             conversationRef.current?.sendContextualUpdate?.(getEasternTimeContext());
           } catch {}
           // Connect SDK audio element to Web Audio API (must run after connection — SDK creates element then)
+          // Only connect once — createMediaElementSource fails if element already connected
           const tryConnectAudio = () => {
+            if (audioConnectedRef.current) return true;
             try {
               const audioElement = document.querySelector("audio");
               if (audioElement && audioContextRef.current && analyserRef.current) {
                 const source = audioContextRef.current.createMediaElementSource(audioElement);
                 source.connect(analyserRef.current);
                 analyserRef.current.connect(audioContextRef.current.destination);
+                audioConnectedRef.current = true;
                 return true;
               }
             } catch (e) {
-              console.warn("[Voice] Audio connect:", e);
+              if (e instanceof Error && e.name === "InvalidStateError") {
+                audioConnectedRef.current = true;
+              } else {
+                console.warn("[Voice] Audio connect:", e);
+              }
             }
             return false;
           };
-          // Retry: SDK may create element shortly after onConnect
           const attempt = (delay: number) => {
             setTimeout(() => {
               if (tryConnectAudio()) return;
@@ -275,6 +282,7 @@ export default function ElevenLabsVoiceAgent({ agentId, websiteId, customPrompt,
           attempt(1200);
         },
         onDisconnect: () => {
+          audioConnectedRef.current = false;
           setIsConnected(false);
           setIsAgentSpeaking(false);
           setAudioLevel(0);

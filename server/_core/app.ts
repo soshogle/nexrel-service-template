@@ -192,6 +192,58 @@ export function createApp() {
     }
   });
 
+  // Secret reports unlock → proxy to CRM (creates lead, returns full report)
+  app.post("/api/secret-reports/unlock", express.json(), async (req, res) => {
+    const crmUrl = process.env.NEXREL_CRM_URL;
+    const websiteId = process.env.NEXREL_WEBSITE_ID;
+    const secret = process.env.WEBSITE_VOICE_CONFIG_SECRET;
+    if (!crmUrl || !websiteId) {
+      res.status(503).json({ error: "CRM not configured" });
+      return;
+    }
+    try {
+      const resp = await fetch(`${crmUrl.replace(/\/$/, "")}/api/websites/${websiteId}/secret-reports/unlock`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(secret ? { "x-website-secret": secret } : {}),
+        },
+        body: JSON.stringify(req.body || {}),
+      });
+      const data = await resp.json();
+      res.status(resp.ok ? 200 : resp.status).json(data);
+    } catch (err) {
+      console.error("[secret-reports/unlock proxy]", err);
+      res.status(502).json({ error: "Failed to unlock report" });
+    }
+  });
+
+  // Secret reports unlock → proxy to CRM (creates lead, returns full report)
+  app.post("/api/secret-reports/unlock", express.json(), async (req, res) => {
+    const crmUrl = process.env.NEXREL_CRM_URL;
+    const websiteId = process.env.NEXREL_WEBSITE_ID;
+    const secret = process.env.WEBSITE_VOICE_CONFIG_SECRET;
+    if (!crmUrl || !websiteId) {
+      res.status(503).json({ error: "CRM not configured" });
+      return;
+    }
+    try {
+      const resp = await fetch(`${crmUrl.replace(/\/$/, "")}/api/websites/${websiteId}/secret-reports/unlock`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(secret ? { "x-website-secret": secret } : {}),
+        },
+        body: JSON.stringify(req.body || {}),
+      });
+      const data = await resp.json();
+      res.status(resp.ok ? 200 : resp.status).json(data);
+    } catch (err) {
+      console.error("[secret-reports/unlock proxy]", err);
+      res.status(502).json({ error: "Failed to unlock report" });
+    }
+  });
+
   // Property evaluation → proxy to CRM (client sends here; server forwards with secret)
   app.post("/api/property-evaluation", express.json(), async (req, res) => {
     const crmUrl = process.env.NEXREL_CRM_URL;

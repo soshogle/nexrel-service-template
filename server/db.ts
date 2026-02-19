@@ -134,7 +134,9 @@ export async function getProperties(opts?: {
     conditions.push(eq(schema.properties.isFeatured, true));
   }
   if ((opts as { prestige?: boolean })?.prestige) {
-    conditions.push(eq((schema.properties as any).isPrestige, true));
+    // Prestige = $1M+ listings (sale only)
+    conditions.push(sql`CAST(${schema.properties.price} AS NUMERIC) >= 1000000`);
+    conditions.push(eq(schema.properties.listingType, "sale"));
   }
   if ((opts as { secret?: boolean })?.secret) {
     conditions.push(eq((schema.properties as any).isSecret, true));

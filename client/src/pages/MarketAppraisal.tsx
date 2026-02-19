@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PageHero } from "@/components/PageHero";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AddressAutocomplete, type AddressData } from "@/components/AddressAutocomplete";
+import { MapView } from "@/components/Map";
 import { toast } from "sonner";
 
 type Step = "property" | "contact" | "success";
+
+const MONTREAL_CENTER = { lat: 45.5017, lng: -73.5673 };
 
 export default function MarketAppraisal() {
   const [step, setStep] = useState<Step>("property");
@@ -16,11 +20,25 @@ export default function MarketAppraisal() {
     bathrooms: "",
     propertyType: "house",
   });
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const [contact, setContact] = useState({
     name: "",
     email: "",
     phone: "",
   });
+
+  const handleAddressChange = (value: string, data?: AddressData) => {
+    setPropertyDetails((prev) => ({
+      ...prev,
+      address: value,
+      city: data?.city ?? prev.city,
+    }));
+    if (data?.lat != null && data?.lng != null) {
+      setMapCenter({ lat: data.lat, lng: data.lng });
+    }
+  };
 
   const handlePropertyNext = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +48,20 @@ export default function MarketAppraisal() {
     }
     setStep("contact");
   };
+
+  useEffect(() => {
+    if (!mapCenter || !mapRef.current) return;
+    mapRef.current.setCenter(mapCenter);
+    mapRef.current.setZoom(16);
+    if (typeof google !== "undefined" && google.maps?.marker?.AdvancedMarkerElement) {
+      if (markerRef.current) markerRef.current.map = null;
+      markerRef.current = new google.maps.marker.AdvancedMarkerElement({
+        map: mapRef.current,
+        position: mapCenter,
+        title: propertyDetails.address,
+      });
+    }
+  }, [mapCenter, propertyDetails.address]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +121,7 @@ export default function MarketAppraisal() {
               onClick={() => {
                 setStep("property");
                 setPropertyDetails({ address: "", city: "", bedrooms: "", bathrooms: "", propertyType: "house" });
+                setMapCenter(null);
                 setContact({ name: "", email: "", phone: "" });
               }}
             >
@@ -113,12 +146,10 @@ export default function MarketAppraisal() {
             <form onSubmit={handlePropertyNext} className="space-y-6">
               <div>
                 <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">Property Address *</label>
-                <Input
+                <AddressAutocomplete
                   value={propertyDetails.address}
-                  onChange={(e) => setPropertyDetails({ ...propertyDetails, address: e.target.value })}
-                  placeholder="123 Main St, Montreal, QC"
-                  className="border-[#214359]/20 h-12"
-                  required
+                  onChange={handleAddressChange}
+                  placeholder="Search address (e.g. 123 Main St, Montreal)"
                 />
               </div>
               <div>
@@ -128,6 +159,26 @@ export default function MarketAppraisal() {
                   onChange={(e) => setPropertyDetails({ ...propertyDetails, city: e.target.value })}
                   placeholder="Montreal"
                   className="border-[#214359]/20 h-12"
+                />
+              </div>
+              <div className="rounded-lg overflow-hidden border border-[#214359]/10">
+                <MapView
+                  initialCenter={mapCenter ?? MONTREAL_CENTER}
+                  initialZoom={mapCenter ? 16 : 11}
+                  onMapReady={(map) => {
+                    mapRef.current = map;
+                    if (mapCenter) {
+                      map.setCenter(mapCenter);
+                      if (typeof google !== "undefined" && google.maps?.marker?.AdvancedMarkerElement) {
+                        markerRef.current = new google.maps.marker.AdvancedMarkerElement({
+                          map,
+                          position: mapCenter,
+                          title: propertyDetails.address,
+                        });
+                      }
+                    }
+                  }}
+                  className="h-[280px]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">

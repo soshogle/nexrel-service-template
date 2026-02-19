@@ -282,14 +282,14 @@ function ReportContent({ report }: { report: Report }) {
 export default function SecretProperties() {
   const { data, isLoading } = trpc.secretReports.list.useQuery();
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [unlockedReportId, setUnlockedReportId] = useState<string | null>(null);
+  const [unlockedReports, setUnlockedReports] = useState<Record<string, Report>>({});
   const [showLeadModal, setShowLeadModal] = useState(false);
 
   const reports = (data?.reports ?? []) as Report[];
 
   const handleViewReport = (report: Report) => {
     setSelectedReport(report);
-    if (unlockedReportId === report.id) {
+    if (unlockedReports[report.id]) {
       setShowLeadModal(false);
     } else {
       setShowLeadModal(true);
@@ -299,22 +299,21 @@ export default function SecretProperties() {
   const handleUnlock = async (formData: { name: string; email: string; phone: string }) => {
     if (!selectedReport) return;
     try {
-      const res = await fetch("/api/voice/push-lead", {
+      const res = await fetch("/api/secret-reports/unlock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          reportId: selectedReport.id,
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          source: "Secret Properties Report",
-          notes: `Viewed report: ${selectedReport.id} - ${selectedReport.title}`,
         }),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to submit");
+        throw new Error(data.error || "Failed to submit");
       }
-      setUnlockedReportId(selectedReport.id);
+      setUnlockedReports((prev) => ({ ...prev, [selectedReport.id]: data.report }));
       setShowLeadModal(false);
       toast.success("Report unlocked! You can now view the full content.");
     } catch (e: unknown) {
@@ -396,7 +395,7 @@ export default function SecretProperties() {
       )}
 
       {/* Report content modal (after unlock) */}
-      {selectedReport && !showLeadModal && unlockedReportId === selectedReport.id && (
+      {selectedReport && !showLeadModal && unlockedReports[selectedReport.id] && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
@@ -406,10 +405,10 @@ export default function SecretProperties() {
                   <X size={20} />
                 </button>
               </div>
-              <ReportContent report={selectedReport} />
-              {selectedReport.pdfUrl && (
+              <ReportContent report={unlockedReports[selectedReport.id]} />
+              {unlockedReports[selectedReport.id]?.pdfUrl && (
                 <a
-                  href={selectedReport.pdfUrl}
+                  href={unlockedReports[selectedReport.id].pdfUrl!}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 mt-6 text-[#86C0C7] font-medium hover:underline"
