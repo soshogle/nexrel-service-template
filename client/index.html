@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Theodora Stavropoulos | Residential Real Estate Broker — Montréal</title>
+    <meta name="description" content="Theodora Stavropoulos — Residential Real Estate Broker at RE/MAX 3000. Find your perfect home in Montréal. Expert service in English, French, and Greek." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  </head>
+
+  <body style="margin:0;min-height:100vh;background:#f5f5f5">
+    <div id="root"><div id="loading-fallback" style="padding:2rem;font-family:system-ui;text-align:center;min-height:100vh;background:#f5f5f5">Loading...</div></div>
+    <script>
+      function showLoadError(msg){var e=document.getElementById("loading-fallback");if(e&&e.textContent.includes("Loading"))e.innerHTML='<p style="color:#c00;margin:0 0 1rem">App failed to load.</p><p style="font-size:14px;color:#333">'+msg+'</p><p><a href="/">Refresh</a> | <a href="/api/health" target="_blank">API health</a></p>';}
+      window.addEventListener("error",function(e){showLoadError("JS: "+(e.message||"unknown"));});
+      window.addEventListener("unhandledrejection",function(e){showLoadError("Promise: "+(e.reason?.message||String(e.reason)));});
+      setTimeout(function(){var e=document.getElementById("loading-fallback");if(e&&e.textContent.includes("Loading"))showLoadError("Timeout. Hard refresh (Ctrl+Shift+R) or try incognito.");},6000);
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+
+</html>

@@ -1,0 +1,10 @@
+node_modules
+.vercel
+.env
+.env.local
+dist
+/public
+# api/index.js: placeholder is committed; build overwrites - avoid committing build output
+api/index.js
+*.log
+.DS_Store

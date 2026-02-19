@@ -1,0 +1,1 @@
+{"name":"nexrel-service-template-server","version":"1.0.0","type":"module","dependencies":{"@trpc/server":"^11.6.0","dotenv":"^17.2.2","drizzle-orm":"^0.44.5","express":"^4.21.2","pg":"^8.18.0","superjson":"^1.13.3","zod":"^4.1.12","apify-client":"^2.22.1"}}

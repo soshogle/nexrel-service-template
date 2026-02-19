@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" fill="none" aria-hidden="true">
+  <!-- RE/MAX official colors: red #E11B22, white -->
+  <!-- Balloon icon (RE/MAX style) -->
+  <ellipse cx="18" cy="20" rx="12" ry="14" fill="#E11B22"/>
+  <path d="M6 34 L18 44 L30 34" stroke="#E11B22" stroke-width="2.5" fill="none"/>
+  <circle cx="18" cy="15" r="4" fill="white"/>
+  <!-- RE/MAX text - official styling -->
+  <text x="42" y="28" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#E11B22" letter-spacing="0.5">RE/MAX</text>
+  <!-- 3000 Inc. - RE/MAX style -->
+  <text x="42" y="46" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="600" fill="#E11B22" letter-spacing="1">3000 Inc.</text>
+</svg>
