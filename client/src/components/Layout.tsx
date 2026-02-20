@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useAgencyConfig } from "@/contexts/AgencyConfigContext";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import ElevenLabsVoiceAgent from "./ElevenLabsVoiceAgent";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 /** Map href to pageLabels key for nav link label overrides */
 const HREF_TO_PAGE_LABEL: Record<string, string> = {
@@ -29,6 +31,7 @@ function resolveNavLabel(
 }
 
 function Navigation() {
+  const { t } = useTranslation();
   const config = useAgencyConfig();
   const { navItems, topLinks } = config.navConfig;
   const { pageLabels } = config;
@@ -122,12 +125,13 @@ function Navigation() {
                 {resolveNavLabel(link.href, link.label, pageLabels)}
               </Link>
             ))}
+            <LanguageSwitcher className="ml-2" />
             <button
               type="button"
               onClick={() => openVoiceAI({ requestCallback: true })}
               className="ml-2 px-5 py-2.5 bg-[#86C0C7] text-white text-sm font-medium tracking-wider uppercase rounded-sm hover:bg-[#6AABB3] transition-colors"
             >
-              Call Now
+              {t("nav.callNow")}
             </button>
           </nav>
 
@@ -183,6 +187,7 @@ function Navigation() {
                 {resolveNavLabel(link.href, link.label, pageLabels)}
               </Link>
             ))}
+            <LanguageSwitcher className="mt-4 justify-center" />
             <button
               type="button"
               onClick={() => {
@@ -191,7 +196,7 @@ function Navigation() {
               }}
               className="mt-4 w-full px-5 py-3 bg-[#86C0C7] text-white text-sm font-medium tracking-wider uppercase rounded-sm text-center"
             >
-              Call Now
+              {t("nav.callNow")}
             </button>
           </nav>
         </div>
@@ -201,6 +206,7 @@ function Navigation() {
 }
 
 function Footer() {
+  const { t } = useTranslation();
   const config = useAgencyConfig();
   const { footerLinks } = config.navConfig;
   const { pageLabels } = config;
@@ -211,13 +217,12 @@ function Footer() {
           <div>
             <h3 className="font-serif text-white text-xl mb-4">{config.name}</h3>
             <p className="text-sm leading-relaxed text-white/60 mb-4">
-              {config.tagline}. We bring people together with homes using local knowledge
-              and strong market experience.
+              {config.tagline}. {t("footer.taglineDesc")}
             </p>
           </div>
 
           <div>
-            <h4 className="font-serif text-white text-lg mb-4">Quick Links</h4>
+            <h4 className="font-serif text-white text-lg mb-4">{t("footer.quickLinks")}</h4>
             <ul className="space-y-2">
               {footerLinks?.slice(0, 5).map((link) => (
                 <li key={link.href}>
@@ -230,7 +235,7 @@ function Footer() {
           </div>
 
           <div>
-            <h4 className="font-serif text-white text-lg mb-4">More</h4>
+            <h4 className="font-serif text-white text-lg mb-4">{t("footer.more")}</h4>
             <ul className="space-y-2">
               {footerLinks?.slice(5).map((link) => (
                 <li key={link.href}>
@@ -247,7 +252,7 @@ function Footer() {
                     rel="noopener noreferrer"
                     className="text-sm text-white/60 hover:text-[#86C0C7] transition-colors"
                   >
-                    RE/MAX Profile
+                    {t("common.remaxProfile")}
                   </a>
                 </li>
               )}
@@ -255,13 +260,13 @@ function Footer() {
           </div>
 
           <div>
-            <h4 className="font-serif text-white text-lg mb-4">Contact Us</h4>
+            <h4 className="font-serif text-white text-lg mb-4">{t("footer.contactUs")}</h4>
             <p className="text-sm text-white/60 mb-2">
               {config.address}<br />
               {config.city} ({config.neighborhood}), {config.province} {config.postalCode}
             </p>
             <p className="text-sm text-white/60 mb-2">
-              Phone: <a href={`tel:${config.phone.replace(/\s/g, "")}`} className="hover:text-[#86C0C7]">{config.phone}</a>
+              {t("common.phone")}: <a href={`tel:${config.phone.replace(/\s/g, "")}`} className="hover:text-[#86C0C7]">{config.phone}</a>
             </p>
             <a href={`mailto:${config.email}`} className="text-sm text-white/60 hover:text-[#86C0C7] transition-colors">
               {config.email}
@@ -273,7 +278,7 @@ function Footer() {
               rel="noopener noreferrer"
               className="inline-block mt-4 px-5 py-2.5 border border-[#86C0C7] text-[#86C0C7] text-sm font-medium tracking-wider uppercase rounded-sm hover:bg-[#86C0C7] hover:text-white transition-all"
             >
-              Get directions
+              {t("common.getDirections")}
             </a>
           </div>
         </div>
@@ -282,10 +287,10 @@ function Footer() {
       <div className="border-t border-white/10">
         <div className="container py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-white/40">
-            &copy; {new Date().getFullYear()} {config.name}. All rights reserved.
+            {t("footer.copyright", { year: new Date().getFullYear(), name: config.name })}
           </p>
           <p className="text-xs text-white/40">
-            Residential Real Estate — Montréal
+            {t("footer.subtitle")}
           </p>
         </div>
       </div>

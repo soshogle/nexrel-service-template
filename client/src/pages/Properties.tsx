@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapView } from "@/components/Map";
+import { useTranslation } from "react-i18next";
 
 function PropertyCard({ property }: { property: any }) {
+  const { t } = useTranslation();
   const formatPrice = (price: string, label?: string | null) => {
     const num = parseFloat(price);
     return `$${num.toLocaleString()}${label ? `/${label}` : ""}`;
@@ -31,7 +33,7 @@ function PropertyCard({ property }: { property: any }) {
         </div>
         <div className="absolute top-4 right-4 bg-[#86C0C7] px-3 py-1 rounded-sm">
           <p className="text-white text-xs font-medium tracking-wider uppercase">
-            For {property.listingType === "sale" ? "Sale" : "Rent"}
+            {property.listingType === "sale" ? t("common.forSale") : t("common.forRent")}
           </p>
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -45,12 +47,12 @@ function PropertyCard({ property }: { property: any }) {
           <div className="flex items-center gap-4 mt-3 text-white/70 text-sm">
             {property.bedrooms && (
               <span className="flex items-center gap-1">
-                <BedDouble size={14} /> {property.bedrooms} Beds
+                <BedDouble size={14} /> {property.bedrooms} {t("common.beds")}
               </span>
             )}
             {property.bathrooms && (
               <span className="flex items-center gap-1">
-                <Bath size={14} /> {property.bathrooms} Bath
+                <Bath size={14} /> {property.bathrooms} {t("common.bath")}
               </span>
             )}
             {property.area && (
@@ -64,6 +66,7 @@ function PropertyCard({ property }: { property: any }) {
 }
 
 function PropertyMapView({ properties }: { properties: any[] }) {
+  const { t } = useTranslation();
   const pageCtx = usePageContextOptional();
   const mapRef = useRef<google.maps.Map | null>(null);
   const propertiesWithCoords = properties.filter(p => p.latitude && p.longitude);
@@ -99,7 +102,7 @@ function PropertyMapView({ properties }: { properties: any[] }) {
             <h3 style="font-family:'Libre Baskerville',serif;font-size:16px;color:#214359;margin:0 0 4px;">${property.title}</h3>
             <p style="font-size:13px;color:#666;margin:0 0 4px;">${property.address}, ${property.city}</p>
             <p style="font-size:16px;font-weight:600;color:#214359;margin:0;">$${parseFloat(property.price).toLocaleString()}${property.priceLabel ? `/${property.priceLabel}` : ""}</p>
-            <a href="/property/${property.slug}" style="display:inline-block;margin-top:8px;color:#86C0C7;font-size:13px;text-decoration:none;">View Details →</a>
+            <a href="/property/${property.slug}" style="display:inline-block;margin-top:8px;color:#86C0C7;font-size:13px;text-decoration:none;">${t("properties.viewDetails")} →</a>
           </div>
         `,
         });
@@ -114,12 +117,12 @@ function PropertyMapView({ properties }: { properties: any[] }) {
         map.setZoom(14);
       }
     }
-  }, [propertiesWithCoords]);
+  }, [propertiesWithCoords, t]);
 
   return (
     <div className="space-y-4">
       <h2 className="font-serif text-2xl sm:text-3xl text-[#214359] text-center">
-        Find Your Dream Home
+        {t("properties.findDreamHome")}
       </h2>
       <AddressSearchBar
         onAddressSelect={(address, lat, lng) => {
@@ -128,7 +131,6 @@ function PropertyMapView({ properties }: { properties: any[] }) {
             mapRef.current.setZoom(15);
           }
           pageCtx?.setPageContext({ searchAddress: address });
-          // Auto-connect Voice AI so user can ask the agent what they want in this area
           window.dispatchEvent(new CustomEvent("openVoiceAI", { detail: {} }));
         }}
       />
@@ -140,7 +142,7 @@ function PropertyMapView({ properties }: { properties: any[] }) {
         />
         {propertiesWithCoords.length === 0 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 px-4 py-2 rounded shadow text-sm text-muted-foreground text-center max-w-md">
-            No properties with location data. Search an address above, then use the mic to tell the broker what you&apos;re looking for in this area.
+            {t("properties.noLocationData")}
           </div>
         )}
       </div>
@@ -148,8 +150,8 @@ function PropertyMapView({ properties }: { properties: any[] }) {
   );
 }
 
-/** Address search using Google Places Autocomplete. Pans map and sets page context for Voice AI. */
 function AddressSearchBar({ onAddressSelect }: { onAddressSelect: (address: string, lat: number, lng: number) => void }) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [ready, setReady] = useState(false);
@@ -188,7 +190,7 @@ function AddressSearchBar({ onAddressSelect }: { onAddressSelect: (address: stri
       <Input
         ref={inputRef}
         type="text"
-        placeholder={ready ? "Search street or address — then use the mic to tell the broker what you want in this area" : "Loading map..."}
+        placeholder={ready ? t("properties.addressSearchReady") : t("properties.loadingMap")}
         className="pl-12 h-12 rounded-sm border-[#214359]/20 focus:border-[#86C0C7]"
         autoComplete="off"
       />
@@ -218,6 +220,7 @@ function parseSearchParams(search: string) {
 }
 
 export default function Properties({ defaultListingType, defaultPropertyType, prestige, pageLabelKey, pageLabel = "Properties" }: PropertiesProps = {}) {
+  const { t } = useTranslation();
   const config = useAgencyConfig();
   const resolvedLabel = pageLabelKey ? (config.pageLabels[pageLabelKey] ?? pageLabel) : pageLabel;
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
@@ -233,7 +236,6 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
   const [sortBy, setSortBy] = useState<string>("newest");
   const [location] = useLocation();
 
-  // Sync filters from URL when Voice AI navigates (e.g. /for-sale?bedrooms=2&city=Saint-Laurent&min_price=400000&max_price=500000)
   const searchString = typeof window !== "undefined" ? window.location.search : "";
   useEffect(() => {
     const parsed = parseSearchParams(searchString);
@@ -248,10 +250,9 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
     if (parsed.maxPrice != null && !Number.isNaN(parsed.maxPrice)) setMaxPrice(String(parsed.maxPrice));
   }, [location, searchString, defaultListingType]);
 
-  // Debounce search input
   useEffect(() => {
-    const t = setTimeout(() => setSearchDebounced(search), 300);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setSearchDebounced(search), 300);
+    return () => clearTimeout(timer);
   }, [search]);
 
   const minPriceNum = minPrice.trim() ? parseInt(minPrice, 10) : undefined;
@@ -273,46 +274,44 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
   const sortedProperties = propertiesData?.items ?? [];
   const pageCtx = usePageContextOptional();
 
-  // Tell Voice AI what listings are on screen
   useEffect(() => {
     if (!pageCtx) return;
-    const pageType = defaultListingType === "rent" ? "listings" : "listings";
     const summaries = sortedProperties.map((p: any) => ({
-      id: p.id,
-      slug: p.slug,
-      title: p.title,
-      address: p.address,
-      city: p.city,
-      price: p.price,
-      priceLabel: p.priceLabel,
-      bedrooms: p.bedrooms,
-      bathrooms: p.bathrooms,
-      listingType: p.listingType,
+      id: p.id, slug: p.slug, title: p.title, address: p.address, city: p.city,
+      price: p.price, priceLabel: p.priceLabel, bedrooms: p.bedrooms, bathrooms: p.bathrooms, listingType: p.listingType,
     }));
-    pageCtx.setPageContext({ path: location, pageType, visibleListings: summaries, selectedListing: null });
+    pageCtx.setPageContext({ path: location, pageType: "listings", visibleListings: summaries, selectedListing: null });
   }, [pageCtx, location, sortedProperties, defaultListingType]);
+
+  const resetFilters = () => {
+    setPropertyType("all");
+    setListingType("all");
+    setBedrooms("all");
+    setBathrooms("all");
+    setMinPrice("");
+    setMaxPrice("");
+    setSearch("");
+  };
 
   return (
     <div className="pt-20">
-      {/* Page Header */}
       <section className="bg-[#214359] py-20">
         <div className="container text-center">
           <p className="text-[#86C0C7] text-sm font-medium tracking-[0.3em] uppercase mb-4">
-            Browse Listings
+            {t("properties.browseListings")}
           </p>
           <h1 className="font-serif text-white text-4xl sm:text-5xl">{resolvedLabel}</h1>
           <div className="w-16 h-0.5 bg-[#86C0C7] mx-auto mt-6" />
         </div>
       </section>
 
-      {/* Search bar */}
       <section className="bg-white border-b border-border">
         <div className="container py-4">
           <div className="relative max-w-xl">
             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search by address, neighborhood, or city..."
+              placeholder={t("properties.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-12 h-12 rounded-sm border-[#214359]/20 focus:border-[#86C0C7]"
@@ -321,7 +320,6 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
         </div>
       </section>
 
-      {/* Toolbar */}
       <section className="border-b border-border bg-white sticky top-20 z-40">
         <div className="container py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -332,23 +330,23 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
               className={filtersOpen ? "bg-[#214359] text-white border-[#214359]" : ""}
             >
               <SlidersHorizontal size={16} className="mr-2" />
-              Filters
+              {t("properties.filters")}
             </Button>
             <span className="text-sm text-muted-foreground">
-              {sortedProperties.length} {sortedProperties.length === 1 ? "property" : "properties"}
+              {sortedProperties.length} {sortedProperties.length === 1 ? t("common.property") : t("common.properties")}
             </span>
           </div>
 
           <div className="flex items-center gap-3">
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[160px] h-9 text-sm">
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={t("properties.sortBy")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
+                <SelectItem value="newest">{t("properties.newest")}</SelectItem>
+                <SelectItem value="price_asc">{t("properties.priceLowHigh")}</SelectItem>
+                <SelectItem value="price_desc">{t("properties.priceHighLow")}</SelectItem>
+                <SelectItem value="oldest">{t("properties.oldest")}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -369,98 +367,83 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
           </div>
         </div>
 
-        {/* Filter Panel */}
         {filtersOpen && (
           <div className="container pb-4 border-t border-border pt-4">
             <div className="flex flex-wrap items-center gap-4">
               <Select value={listingType} onValueChange={setListingType}>
                 <SelectTrigger className="w-[140px] h-9 text-sm">
-                  <SelectValue placeholder="Listing Type" />
+                  <SelectValue placeholder={t("properties.listingType")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="rent">For Rent</SelectItem>
-                  <SelectItem value="sale">For Sale</SelectItem>
+                  <SelectItem value="all">{t("properties.allTypes")}</SelectItem>
+                  <SelectItem value="rent">{t("common.forRent")}</SelectItem>
+                  <SelectItem value="sale">{t("common.forSale")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={propertyType} onValueChange={setPropertyType}>
                 <SelectTrigger className="w-[160px] h-9 text-sm">
-                  <SelectValue placeholder="Property Type" />
+                  <SelectValue placeholder={t("properties.propertyType")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Properties</SelectItem>
-                  <SelectItem value="condo">Condo</SelectItem>
-                  <SelectItem value="house">House</SelectItem>
-                  <SelectItem value="townhouse">Townhouse</SelectItem>
-                  <SelectItem value="apartment">Apartment</SelectItem>
+                  <SelectItem value="all">{t("properties.allProperties")}</SelectItem>
+                  <SelectItem value="condo">{t("properties.condo")}</SelectItem>
+                  <SelectItem value="house">{t("properties.house")}</SelectItem>
+                  <SelectItem value="townhouse">{t("properties.townhouse")}</SelectItem>
+                  <SelectItem value="apartment">{t("properties.apartment")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={bedrooms} onValueChange={setBedrooms}>
                 <SelectTrigger className="w-[140px] h-9 text-sm">
-                  <SelectValue placeholder="Bedrooms" />
+                  <SelectValue placeholder={t("common.bedrooms")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Any Beds</SelectItem>
-                  <SelectItem value="1">1+ Bed</SelectItem>
-                  <SelectItem value="2">2+ Beds</SelectItem>
-                  <SelectItem value="3">3+ Beds</SelectItem>
-                  <SelectItem value="4">4+ Beds</SelectItem>
+                  <SelectItem value="all">{t("properties.anyBeds")}</SelectItem>
+                  <SelectItem value="1">1+ {t("common.bed")}</SelectItem>
+                  <SelectItem value="2">2+ {t("common.beds")}</SelectItem>
+                  <SelectItem value="3">3+ {t("common.beds")}</SelectItem>
+                  <SelectItem value="4">4+ {t("common.beds")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={bathrooms} onValueChange={setBathrooms}>
                 <SelectTrigger className="w-[140px] h-9 text-sm">
-                  <SelectValue placeholder="Bathrooms" />
+                  <SelectValue placeholder={t("common.bathrooms")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Any Baths</SelectItem>
-                  <SelectItem value="1">1+ Bath</SelectItem>
-                  <SelectItem value="2">2+ Baths</SelectItem>
-                  <SelectItem value="3">3+ Baths</SelectItem>
-                  <SelectItem value="4">4+ Baths</SelectItem>
+                  <SelectItem value="all">{t("properties.anyBaths")}</SelectItem>
+                  <SelectItem value="1">1+ {t("common.bath")}</SelectItem>
+                  <SelectItem value="2">2+ {t("common.baths")}</SelectItem>
+                  <SelectItem value="3">3+ {t("common.baths")}</SelectItem>
+                  <SelectItem value="4">4+ {t("common.baths")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Input
                 type="number"
-                placeholder="Min price"
+                placeholder={t("properties.minPrice")}
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 className="w-[120px] h-9 text-sm"
               />
               <Input
                 type="number"
-                placeholder="Max price"
+                placeholder={t("properties.maxPrice")}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
                 className="w-[120px] h-9 text-sm"
               />
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setPropertyType("all");
-                  setListingType("all");
-                  setBedrooms("all");
-                  setBathrooms("all");
-                  setMinPrice("");
-                  setMaxPrice("");
-                  setSearch("");
-                }}
-                className="text-sm text-muted-foreground"
-              >
+              <Button variant="ghost" size="sm" onClick={resetFilters} className="text-sm text-muted-foreground">
                 <X size={14} className="mr-1" />
-                Clear Filters
+                {t("common.clearFilters")}
               </Button>
             </div>
           </div>
         )}
       </section>
 
-      {/* Content */}
       <section className="py-12 bg-[#f8f6f3] min-h-[60vh]">
         <div className="container">
           {isLoading ? (
@@ -487,23 +470,12 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
             <div className="text-center py-20">
               <p className="text-muted-foreground text-lg">
                 {searchDebounced || propertyType !== "all" || listingType !== "all" || bedrooms !== "all" || bathrooms !== "all" || minPrice || maxPrice
-                  ? "No properties match your filters."
-                  : "No listings yet. Listings are synced from Centris.ca. Check back soon."}
+                  ? t("properties.noMatchFilters")
+                  : t("properties.noListingsYet")}
               </p>
               <div className="flex flex-wrap justify-center gap-4 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setPropertyType("all");
-                    setListingType("all");
-                    setBedrooms("all");
-                    setBathrooms("all");
-                    setMinPrice("");
-                    setMaxPrice("");
-                    setSearch("");
-                  }}
-                >
-                  Clear Filters
+                <Button variant="outline" onClick={resetFilters}>
+                  {t("common.clearFilters")}
                 </Button>
                 {config?.remaxProfileUrl && (
                   <a
@@ -512,7 +484,7 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-2 border border-[#214359]/30 text-[#214359] font-medium rounded-sm hover:bg-[#214359] hover:text-white transition-colors"
                   >
-                    View on RE/MAX
+                    {t("common.viewOnRemax")}
                   </a>
                 )}
               </div>

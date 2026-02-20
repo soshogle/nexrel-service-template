@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { MapPin, BedDouble, Bath, ArrowRight } from "lucide-react";
 import { useAgencyConfig } from "@/contexts/AgencyConfigContext";
+import { useTranslation } from "react-i18next";
 import {
   Carousel,
   CarouselContent,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/carousel";
 
 export default function FeaturedListings() {
+  const { t } = useTranslation();
   const config = useAgencyConfig();
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -34,10 +36,10 @@ export default function FeaturedListings() {
       <div className="container">
         <div className="text-center mb-16">
           <p className="text-[#86C0C7] text-sm font-medium tracking-[0.2em] uppercase mb-4">
-            TS | FEATURED PROPERTIES
+            TS | {t("featured.label")}
           </p>
           <h2 className="font-serif text-[#214359] text-3xl sm:text-4xl italic">
-            Current Listings
+            {t("featured.title")}
           </h2>
           <div className="w-16 h-0.5 bg-[#86C0C7] mx-auto mt-6" />
         </div>
@@ -62,14 +64,14 @@ export default function FeaturedListings() {
             if (realListings.length === 0) {
               return (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-4">Properties coming soon. Check back shortly.</p>
+                  <p className="text-muted-foreground mb-4">{t("common.comingSoon")}</p>
                   <a
                     href={config.remaxProfileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-3 border border-[#214359]/30 text-[#214359] font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#214359] hover:text-white transition-colors"
                   >
-                    View my listings on RE/MAX
+                    {t("common.viewListingsOnRemax")}
                     <ArrowRight size={16} />
                   </a>
                 </div>
@@ -83,7 +85,7 @@ export default function FeaturedListings() {
               className="w-full"
             >
               <CarouselContent className="-ml-4">
-                {realListings.map((property, idx) => (
+                {realListings.map((property) => (
                   <CarouselItem key={property.id} className="pl-4 basis-[min(400px,85vw)]">
                     <Link href={`/property/${property.slug}`} className="group property-card block">
                       <div className="relative overflow-hidden rounded-sm aspect-[4/3]">
@@ -92,7 +94,6 @@ export default function FeaturedListings() {
                           alt={property.title}
                           className="listing-img-zoom w-full h-full object-cover"
                         />
-                        {/* Vignette overlay — same as hero for cinematic depth */}
                         <div
                           className="absolute inset-0 pointer-events-none"
                           aria-hidden
@@ -108,7 +109,7 @@ export default function FeaturedListings() {
                         </div>
                         <div className="absolute top-4 right-4 bg-[#86C0C7] px-3 py-1 rounded-sm">
                           <p className="text-white text-xs font-medium tracking-wider uppercase">
-                            For {property.listingType === "sale" ? "Sale" : "Rent"}
+                            {property.listingType === "sale" ? t("common.forSale") : t("common.forRent")}
                           </p>
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -123,13 +124,13 @@ export default function FeaturedListings() {
                             {property.bedrooms && (
                               <span className="flex items-center gap-1">
                                 <BedDouble size={14} />
-                                {property.bedrooms} Beds
+                                {property.bedrooms} {t("common.beds")}
                               </span>
                             )}
                             {property.bathrooms && (
                               <span className="flex items-center gap-1">
                                 <Bath size={14} />
-                                {property.bathrooms} Bath
+                                {property.bathrooms} {t("common.bath")}
                               </span>
                             )}
                             {property.area && (
@@ -162,14 +163,14 @@ export default function FeaturedListings() {
           })()
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">Properties coming soon. Check back shortly.</p>
+            <p className="text-muted-foreground mb-4">{t("common.comingSoon")}</p>
             <a
               href={config.remaxProfileUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 border border-[#214359]/30 text-[#214359] font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#214359] hover:text-white transition-colors"
             >
-              View my listings on RE/MAX
+              {t("common.viewListingsOnRemax")}
               <ArrowRight size={16} />
             </a>
           </div>
@@ -181,7 +182,7 @@ export default function FeaturedListings() {
               href="/properties"
               className="inline-flex items-center gap-2 px-8 py-4 bg-[#214359] text-white font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#1a3648] transition-colors duration-300"
             >
-              View All Properties
+              {t("common.viewAllProperties")}
               <ArrowRight size={16} />
             </Link>
           ) : (
@@ -191,7 +192,7 @@ export default function FeaturedListings() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-8 py-4 bg-[#214359] text-white font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#1a3648] transition-colors duration-300"
             >
-              View listings on RE/MAX
+              {t("common.viewListingsRemax")}
               <ArrowRight size={16} />
             </a>
           )}

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapView } from "@/components/Map";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 function ContactMap() {
   const handleMapReady = (map: google.maps.Map) => {
@@ -38,6 +39,7 @@ function ContactMap() {
 }
 
 export default function Contact() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -56,14 +58,14 @@ export default function Contact() {
       setFormData({ name: "", email: "", phone: "", propertyOfInterest: "none", message: "" });
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to send message. Please try again.");
+      toast.error(error.message || t("propertyDetail.failedToSend"));
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t("propertyDetail.fillRequired"));
       return;
     }
     const propertyId = formData.propertyOfInterest && formData.propertyOfInterest !== "none"
@@ -87,25 +89,24 @@ export default function Contact() {
         <section className="bg-[#214359] py-20">
           <div className="container text-center">
             <p className="text-[#86C0C7] text-sm font-medium tracking-[0.3em] uppercase mb-4">
-              Thank You
+              {t("contact.thankYou")}
             </p>
-            <h1 className="font-serif text-white text-4xl sm:text-5xl">Message Sent</h1>
+            <h1 className="font-serif text-white text-4xl sm:text-5xl">{t("contact.messageSent")}</h1>
             <div className="w-16 h-0.5 bg-[#86C0C7] mx-auto mt-6" />
           </div>
         </section>
         <section className="py-24">
           <div className="container max-w-lg text-center">
             <CheckCircle size={64} className="text-[#86C0C7] mx-auto mb-6" />
-            <h2 className="font-serif text-[#214359] text-2xl mb-4">Your inquiry has been received</h2>
+            <h2 className="font-serif text-[#214359] text-2xl mb-4">{t("contact.inquiryReceived")}</h2>
             <p className="text-[#214359]/70 leading-relaxed mb-8">
-              Thank you for reaching out. I'll review your message and get back to you as soon as possible,
-              typically within 24 hours.
+              {t("contact.thankYouDesc")}
             </p>
             <Button
               onClick={() => setSubmitted(false)}
               className="bg-[#86C0C7] hover:bg-[#6AABB3] text-white tracking-wider uppercase text-sm px-8 py-3"
             >
-              Send Another Message
+              {t("contact.sendAnother")}
             </Button>
           </div>
         </section>
@@ -115,82 +116,79 @@ export default function Contact() {
 
   return (
     <div className="pt-20">
-      {/* Page Header */}
       <section className="bg-[#214359] py-20">
         <div className="container text-center">
           <p className="text-[#86C0C7] text-sm font-medium tracking-[0.3em] uppercase mb-4">
-            Let's Connect
+            {t("contact.letsConnect")}
           </p>
-          <h1 className="font-serif text-white text-4xl sm:text-5xl">Contact</h1>
+          <h1 className="font-serif text-white text-4xl sm:text-5xl">{t("contact.contactTitle")}</h1>
           <div className="w-16 h-0.5 bg-[#86C0C7] mx-auto mt-6" />
         </div>
       </section>
 
-      {/* Contact Content */}
       <section className="py-24 bg-white">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {/* Contact Form */}
             <div>
-              <h2 className="font-serif text-[#214359] text-2xl mb-2">Send a Message</h2>
+              <h2 className="font-serif text-[#214359] text-2xl mb-2">{t("contact.sendAMessage")}</h2>
               <p className="text-[#214359]/60 mb-8">
-                Have a question about a property or looking to buy, sell, or rent? I'd love to hear from you.
+                {t("contact.formDesc")}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">
-                    Full Name *
+                    {t("contact.fullName")} *
                   </label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Your full name"
+                    placeholder={t("propertyDetail.yourName")}
                     className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm h-12"
                     required
                   />
                 </div>
                 <div>
                   <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">
-                    Email Address *
+                    {t("contact.emailAddress")} *
                   </label>
                   <Input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="your@email.com"
+                    placeholder={t("propertyDetail.yourEmail")}
                     className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm h-12"
                     required
                   />
                 </div>
                 <div>
                   <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">
-                    Phone Number
+                    {t("contact.phoneNumber")}
                   </label>
                   <Input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="(514) 000-0000"
+                    placeholder={t("propertyDetail.yourPhone")}
                     className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm h-12"
                   />
                 </div>
                 <div>
                   <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">
-                    Property of Interest
+                    {t("contact.propertyOfInterest")}
                   </label>
                   <Select
                     value={formData.propertyOfInterest}
                     onValueChange={(v) => setFormData({ ...formData, propertyOfInterest: v })}
                   >
                     <SelectTrigger className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm h-12">
-                      <SelectValue placeholder="Select a property (optional)" />
+                      <SelectValue placeholder={t("contact.selectProperty")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">General inquiry</SelectItem>
+                      <SelectItem value="none">{t("contact.generalInquiry")}</SelectItem>
                       {propertyOptions.map((p) => (
                         <SelectItem key={p.id} value={p.id.toString()}>
-                          {p.title} — ${parseFloat(p.price).toLocaleString()}{p.priceLabel ? `/${p.priceLabel}` : "/mo"}
+                          {p.title} — ${parseFloat(p.price).toLocaleString()}{p.priceLabel ? `/${p.priceLabel}` : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -198,12 +196,12 @@ export default function Contact() {
                 </div>
                 <div>
                   <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">
-                    Message *
+                    {t("contact.messageLabel")} *
                   </label>
                   <Textarea
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Tell me about what you're looking for..."
+                    placeholder={t("contact.messagePlaceholder")}
                     rows={6}
                     className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm resize-none"
                     required
@@ -215,22 +213,21 @@ export default function Contact() {
                   className="w-full bg-[#86C0C7] hover:bg-[#6AABB3] text-white tracking-wider uppercase text-sm py-4 h-auto rounded-sm"
                 >
                   {submitInquiry.isPending ? (
-                    "Sending..."
+                    t("common.sending")
                   ) : (
                     <>
                       <Send size={16} className="mr-2" />
-                      Send Message
+                      {t("common.sendMessage")}
                     </>
                   )}
                 </Button>
               </form>
             </div>
 
-            {/* Contact Info */}
             <div>
-              <h2 className="font-serif text-[#214359] text-2xl mb-2">Get in Touch</h2>
+              <h2 className="font-serif text-[#214359] text-2xl mb-2">{t("contact.getInTouchTitle")}</h2>
               <p className="text-[#214359]/60 mb-8">
-                Feel free to reach out directly or visit the office.
+                {t("contact.getInTouchDesc")}
               </p>
 
               <div className="space-y-6 mb-12">
@@ -239,7 +236,7 @@ export default function Contact() {
                     <Phone size={20} className="text-[#86C0C7]" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-1">Phone</h3>
+                    <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-1">{t("common.phone")}</h3>
                     <a href="tel:5143333000" className="text-[#214359]/70 hover:text-[#86C0C7] transition-colors">
                       514 333-3000
                     </a>
@@ -251,7 +248,7 @@ export default function Contact() {
                     <Mail size={20} className="text-[#86C0C7]" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-1">Email</h3>
+                    <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-1">{t("common.email")}</h3>
                     <a href="mailto:Theodora.stavropoulos@remax-quebec.com" className="text-[#214359]/70 hover:text-[#86C0C7] transition-colors">
                       Theodora.stavropoulos@remax-quebec.com
                     </a>
@@ -263,7 +260,7 @@ export default function Contact() {
                     <MapPin size={20} className="text-[#86C0C7]" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-1">Office</h3>
+                    <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-1">{t("common.office")}</h3>
                     <p className="text-[#214359]/70">
                       RE/MAX 3000 Inc.<br />
                       9280 boul. L'Acadie<br />
@@ -277,17 +274,16 @@ export default function Contact() {
                     <Clock size={20} className="text-[#86C0C7]" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-1">Hours</h3>
+                    <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-1">{t("common.hours")}</h3>
                     <p className="text-[#214359]/70">
-                      Monday – Friday: 9:00 AM – 6:00 PM<br />
-                      Saturday: 10:00 AM – 4:00 PM<br />
-                      Sunday: By Appointment
+                      {t("contact.hours.weekday")}<br />
+                      {t("contact.hours.saturday")}<br />
+                      {t("contact.hours.sunday")}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Map */}
               <ContactMap />
             </div>
           </div>

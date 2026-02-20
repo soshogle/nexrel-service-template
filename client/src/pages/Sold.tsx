@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { PageHero } from "@/components/PageHero";
 import { MapPin, BedDouble, Bath, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Sold() {
+  const { t } = useTranslation();
   const { data, isLoading } = trpc.properties.list.useQuery({
     status: "sold",
     limit: 20,
@@ -14,9 +15,9 @@ export default function Sold() {
   return (
     <div className="pt-20">
       <PageHero
-        label="SOLD PROPERTIES"
-        title="Recently Sold"
-        subtitle="See what we've achieved for our clients. Our track record speaks for itself."
+        label={t("sold.label")}
+        title={t("sold.title")}
+        subtitle={t("sold.subtitle")}
       />
       <section className="py-24 bg-[#f8f6f3]">
         <div className="container">
@@ -38,7 +39,7 @@ export default function Sold() {
                 <Link key={p.id} href={`/property/${p.slug}`} className="group block">
                   <div className="relative overflow-hidden rounded-sm aspect-[4/3]">
                     <img src={p.mainImageUrl || "/placeholder.jpg"} alt={p.title} className="listing-img-zoom w-full h-full object-cover" />
-                    <div className="absolute top-4 left-4 bg-[#214359] text-white px-3 py-1 text-sm font-medium uppercase">Sold</div>
+                    <div className="absolute top-4 left-4 bg-[#214359] text-white px-3 py-1 text-sm font-medium uppercase">{t("common.sold")}</div>
                     <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
                       <p className="font-serif text-white text-lg">${parseFloat(p.price).toLocaleString()}</p>
                       <p className="text-white/80 text-sm">{p.address}, {p.city}</p>
@@ -49,9 +50,9 @@ export default function Sold() {
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-[#214359]/70 text-lg">No sold properties to display yet. Check back soon.</p>
+              <p className="text-[#214359]/70 text-lg">{t("sold.noSold")}</p>
               <Link href="/properties" className="inline-flex items-center gap-2 mt-6 text-[#86C0C7] font-medium tracking-wider uppercase text-sm">
-                View Current Listings
+                {t("sold.viewCurrent")}
                 <ArrowRight size={14} />
               </Link>
             </div>

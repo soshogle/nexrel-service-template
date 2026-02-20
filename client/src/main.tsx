@@ -7,6 +7,7 @@ import { flushSync } from "react-dom";
 import superjson from "superjson";
 import AppShell from "./AppShell";
 import { getLoginUrl } from "./const";
+import "./i18n";
 import "./index.css";
 
 console.log("[nexrel] imports done");

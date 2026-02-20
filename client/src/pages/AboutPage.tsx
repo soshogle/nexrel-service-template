@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { MapPin, Phone, Mail, Globe, ArrowRight } from "lucide-react";
 import { MapView } from "@/components/Map";
 import { useAgencyConfig } from "@/contexts/AgencyConfigContext";
+import { useTranslation } from "react-i18next";
 
 const THEODORA_HEADSHOT = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663115065429/FXvMFuJPKwMDlplc.jpeg";
 
@@ -46,25 +47,26 @@ function OfficeMap() {
 }
 
 export default function AboutPage() {
+  const { t } = useTranslation();
   const config = useAgencyConfig();
+
+  const bioP2Parts = t("about.bioP2").split(/<strong>(.*?)<\/strong>/);
+
   return (
     <div className="pt-20">
-      {/* Page Header */}
       <section className="bg-[#214359] py-20">
         <div className="container text-center">
           <p className="text-[#86C0C7] text-sm font-medium tracking-[0.2em] uppercase mb-4">
-            THE TS STORY
+            {t("about.theStory")}
           </p>
-          <h1 className="font-serif text-white text-4xl sm:text-5xl italic">A broker with true dedication</h1>
+          <h1 className="font-serif text-white text-4xl sm:text-5xl italic">{t("about.title")}</h1>
           <div className="w-16 h-0.5 bg-[#86C0C7] mx-auto mt-6" />
         </div>
       </section>
 
-      {/* Profile Section */}
       <section className="py-24 bg-white">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            {/* Photo */}
             <div>
               <div className="relative">
                 <div className="absolute -bottom-4 -left-4 w-full h-full bg-[#86C0C7]/10 rounded-sm" />
@@ -76,10 +78,9 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* Bio */}
             <div>
               <p className="text-[#86C0C7] text-sm font-medium tracking-[0.3em] uppercase mb-4">
-                Residential Real Estate Broker
+                {t("propertyDetail.residentialBroker")}
               </p>
               <h2 className="font-serif text-[#214359] text-3xl sm:text-4xl mb-6">
                 Theodora Stavropoulos
@@ -87,33 +88,24 @@ export default function AboutPage() {
               <div className="w-16 h-0.5 bg-[#86C0C7] mb-8" />
 
               <div className="space-y-6 text-[#214359]/70 leading-relaxed">
+                <p>{t("about.bioP1")}</p>
                 <p>
-                  As a dedicated Residential Real Estate Broker at RE/MAX 3000 Inc., I bring a passion for
-                  helping clients navigate the Montréal real estate market with confidence and ease. Whether
-                  you're a first-time buyer, looking to sell, or searching for the perfect rental, I provide
-                  personalized service tailored to your unique needs.
+                  {bioP2Parts.length === 3 ? (
+                    <>{bioP2Parts[0]}<strong className="text-[#214359]">{bioP2Parts[1]}</strong>{bioP2Parts[2]}</>
+                  ) : (
+                    t("about.bioP2")
+                  )}
                 </p>
-                <p>
-                  Fluent in <strong className="text-[#214359]">English, French, and Greek</strong>, I serve
-                  a diverse clientele across Montréal's vibrant neighborhoods. From the artistic energy of
-                  Le Plateau-Mont-Royal to the family-friendly streets of Saint-Laurent, I know the city
-                  inside and out.
-                </p>
-                <p>
-                  My approach is built on transparency, responsiveness, and genuine care for my clients'
-                  goals. I believe that finding the right home is about more than square footage — it's
-                  about finding a place where life happens.
-                </p>
+                <p>{t("about.bioP3")}</p>
               </div>
 
-              {/* Contact Info */}
               <div className="mt-10 space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#86C0C7]/10 rounded-full flex items-center justify-center">
                     <Phone size={18} className="text-[#86C0C7]" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Phone</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("common.phone")}</p>
                     <a href="tel:5143333000" className="text-[#214359] font-medium hover:text-[#86C0C7] transition-colors">
                       514 333-3000
                     </a>
@@ -124,7 +116,7 @@ export default function AboutPage() {
                     <Mail size={18} className="text-[#86C0C7]" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Email</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("common.email")}</p>
                     <a href={`mailto:${config.email}`} className="text-[#214359] font-medium hover:text-[#86C0C7] transition-colors">
                       {config.email}
                     </a>
@@ -135,8 +127,8 @@ export default function AboutPage() {
                     <Globe size={18} className="text-[#86C0C7]" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Languages</p>
-                    <p className="text-[#214359] font-medium">English, French, Greek</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("common.languages")}</p>
+                    <p className="text-[#214359] font-medium">{config.languages.join(", ")}</p>
                   </div>
                 </div>
               </div>
@@ -146,7 +138,7 @@ export default function AboutPage() {
                   href="/contact"
                   className="inline-flex items-center gap-2 px-8 py-4 bg-[#86C0C7] text-white font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#6AABB3] transition-colors duration-300"
                 >
-                  Get in Touch
+                  {t("common.getInTouch")}
                   <ArrowRight size={16} />
                 </Link>
                 <a
@@ -155,7 +147,7 @@ export default function AboutPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-8 py-4 border border-[#214359] text-[#214359] font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#214359] hover:text-white transition-all duration-300"
                 >
-                  RE/MAX Profile
+                  {t("common.remaxProfile")}
                 </a>
               </div>
             </div>
@@ -163,15 +155,14 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Office Section */}
       <section className="py-24 bg-[#f8f6f3]">
         <div className="container">
           <div className="text-center mb-16">
             <p className="text-[#86C0C7] text-sm font-medium tracking-[0.3em] uppercase mb-4">
-              Visit Us
+              {t("about.visitUs")}
             </p>
             <h2 className="font-serif text-[#214359] text-3xl sm:text-4xl">
-              Office Location
+              {t("about.officeLocation")}
             </h2>
             <div className="w-16 h-0.5 bg-[#86C0C7] mx-auto mt-6" />
           </div>
@@ -195,8 +186,7 @@ export default function AboutPage() {
                 </div>
               </div>
               <p className="mt-6 text-[#214359]/60 text-sm leading-relaxed">
-                Located in the heart of Montréal, our office is easily accessible and ready to welcome you.
-                Feel free to stop by or schedule an appointment to discuss your real estate needs.
+                {t("about.officeDesc")}
               </p>
             </div>
             <OfficeMap />

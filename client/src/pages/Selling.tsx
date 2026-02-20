@@ -2,32 +2,34 @@ import { Link } from "wouter";
 import { PageHero } from "@/components/PageHero";
 import { Home, Key, TrendingUp, BarChart3, ArrowRight } from "lucide-react";
 import { useAgencyConfig } from "@/contexts/AgencyConfigContext";
+import { useTranslation } from "react-i18next";
 
 export default function Selling() {
+  const { t } = useTranslation();
   const { pageLabels } = useAgencyConfig();
   const services = [
     {
       icon: Home,
-      title: pageLabels.forSale ?? "For Sale",
-      description: "Browse current listings for sale from Centris — Montreal's largest real estate platform.",
+      title: pageLabels.forSale ?? t("common.forSale"),
+      description: t("buying.forSaleDesc"),
       href: "/for-sale",
     },
     {
       icon: Key,
-      title: "Sold Properties",
-      description: "Browse our recently sold properties and see what we've achieved for our clients.",
+      title: t("selling.soldProperties"),
+      description: t("selling.soldDesc"),
       href: "/sold",
     },
     {
       icon: TrendingUp,
-      title: "Property Concierge",
-      description: "Talk to our AI assistant — ask about listings, schedule viewings, or get answers.",
+      title: t("selling.propertyConcierge"),
+      description: t("selling.conciergeDesc"),
       href: "/property-concierge",
     },
     {
       icon: BarChart3,
-      title: "Market Appraisal",
-      description: "Get a free, no-obligation market appraisal of your property's value.",
+      title: t("selling.marketAppraisal"),
+      description: t("selling.appraisalDesc"),
       href: "/market-appraisal",
     },
   ];
@@ -35,9 +37,9 @@ export default function Selling() {
   return (
     <div className="pt-20">
       <PageHero
-        label={(pageLabels.selling ?? "Selling").toUpperCase()}
-        title="Sell Your Property"
-        subtitle="We bring expertise, market knowledge, and a proven track record to help you achieve the best result."
+        label={(pageLabels.selling ?? t("nav.selling")).toUpperCase()}
+        title={t("selling.title")}
+        subtitle={t("selling.subtitle")}
       />
       <section className="py-24 bg-white">
         <div className="container">
@@ -50,7 +52,7 @@ export default function Selling() {
                 <h3 className="font-serif text-[#214359] text-xl mb-4">{s.title}</h3>
                 <p className="text-[#214359]/70 mb-6">{s.description}</p>
                 <span className="inline-flex items-center gap-2 text-[#86C0C7] font-medium tracking-wider uppercase text-sm group-hover:gap-3 transition-all">
-                  Learn More
+                  {t("common.learnMore")}
                   <ArrowRight size={14} />
                 </span>
               </Link>

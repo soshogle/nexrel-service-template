@@ -9,17 +9,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { MapView } from "@/components/Map";
 import MotionImage from "@/components/MotionImage";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 const THEODORA_HEADSHOT = "https://files.manuscdn.com/user_upload_by_module/session_file/310519663115065429/FXvMFuJPKwMDlplc.jpeg";
 
 function PhotoGallery({ images }: { images: { url: string; alt?: string; motionDisabled?: boolean }[] }) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   if (!images || images.length === 0) {
     return (
       <div className="bg-muted h-[500px] flex items-center justify-center rounded-sm">
-        <p className="text-muted-foreground">No photos available</p>
+        <p className="text-muted-foreground">{t("common.noPhotos")}</p>
       </div>
     );
   }
@@ -29,7 +31,6 @@ function PhotoGallery({ images }: { images: { url: string; alt?: string; motionD
 
   return (
     <>
-      {/* Main Image — Ken Burns / AgentPulse-style motion */}
       <div className="relative group cursor-pointer" onClick={() => setLightboxOpen(true)}>
         <div className="aspect-[16/9] overflow-hidden">
           <MotionImage
@@ -40,7 +41,6 @@ function PhotoGallery({ images }: { images: { url: string; alt?: string; motionD
             disabled={images[currentIndex].motionDisabled}
           />
         </div>
-        {/* Navigation arrows */}
         {images.length > 1 && (
           <>
             <button
@@ -57,13 +57,11 @@ function PhotoGallery({ images }: { images: { url: string; alt?: string; motionD
             </button>
           </>
         )}
-        {/* Counter */}
         <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-sm">
           {currentIndex + 1} / {images.length}
         </div>
       </div>
 
-      {/* Thumbnails */}
       {images.length > 1 && (
         <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
           {images.map((img, i) => (
@@ -80,7 +78,6 @@ function PhotoGallery({ images }: { images: { url: string; alt?: string; motionD
         </div>
       )}
 
-      {/* Lightbox */}
       {lightboxOpen && (
         <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center" onClick={() => setLightboxOpen(false)}>
           <button className="absolute top-6 right-6 text-white/70 hover:text-white" onClick={() => setLightboxOpen(false)}>
@@ -114,6 +111,7 @@ function PhotoGallery({ images }: { images: { url: string; alt?: string; motionD
 }
 
 function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number; propertyTitle: string }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
 
@@ -121,17 +119,17 @@ function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number
     onSuccess: () => {
       setSubmitted(true);
       setFormData({ name: "", email: "", phone: "", message: "" });
-      toast.success("Your inquiry has been sent. I'll get back to you soon.");
+      toast.success(t("propertyDetail.inquirySentSuccess"));
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to send. Please try again.");
+      toast.error(error.message || t("propertyDetail.failedToSend"));
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t("propertyDetail.fillRequired"));
       return;
     }
     submitInquiry.mutate({
@@ -146,12 +144,12 @@ function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number
   if (submitted) {
     return (
       <div className="bg-white rounded-sm p-8 shadow-sm">
-        <h2 className="font-serif text-[#214359] text-xl mb-4">Inquiry Sent</h2>
+        <h2 className="font-serif text-[#214359] text-xl mb-4">{t("propertyDetail.inquirySent")}</h2>
         <p className="text-[#214359]/70 mb-6">
-          Thank you for your interest in this property. I'll review your message and get back to you shortly.
+          {t("propertyDetail.inquirySentDesc")}
         </p>
         <Button variant="outline" onClick={() => setSubmitted(false)} className="border-[#86C0C7] text-[#86C0C7] hover:bg-[#86C0C7]/10">
-          Send Another Inquiry
+          {t("propertyDetail.sendAnother")}
         </Button>
       </div>
     );
@@ -159,48 +157,48 @@ function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number
 
   return (
     <div className="bg-white rounded-sm p-8 shadow-sm">
-      <h2 className="font-serif text-[#214359] text-xl mb-4">Inquire About This Property</h2>
+      <h2 className="font-serif text-[#214359] text-xl mb-4">{t("propertyDetail.inquireAbout")}</h2>
       <p className="text-[#214359]/70 mb-6">
-        Interested in {propertyTitle}? Send me a message and I'll get back to you as soon as possible.
+        {t("propertyDetail.inquireDesc", { title: propertyTitle })}
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">Name *</label>
+          <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">{t("propertyDetail.nameLabel")} *</label>
           <Input
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Your full name"
+            placeholder={t("propertyDetail.yourName")}
             className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm h-11"
             required
           />
         </div>
         <div>
-          <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">Email *</label>
+          <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">{t("propertyDetail.emailLabel")} *</label>
           <Input
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="your@email.com"
+            placeholder={t("propertyDetail.yourEmail")}
             className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm h-11"
             required
           />
         </div>
         <div>
-          <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">Phone</label>
+          <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">{t("propertyDetail.phoneLabel")}</label>
           <Input
             type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="(514) 000-0000"
+            placeholder={t("propertyDetail.yourPhone")}
             className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm h-11"
           />
         </div>
         <div>
-          <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">Message *</label>
+          <label className="text-xs text-[#214359] uppercase tracking-wider font-medium mb-2 block">{t("propertyDetail.messageLabel")} *</label>
           <Textarea
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-            placeholder="Tell me about your interest in this property..."
+            placeholder={t("propertyDetail.tellMeInterest")}
             rows={4}
             className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm resize-none"
             required
@@ -211,7 +209,7 @@ function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number
           disabled={submitInquiry.isPending}
           className="w-full bg-[#86C0C7] hover:bg-[#6AABB3] text-white tracking-wider uppercase text-sm py-3 h-auto rounded-sm"
         >
-          {submitInquiry.isPending ? "Sending..." : <><Send size={14} className="mr-2" />Send Inquiry</>}
+          {submitInquiry.isPending ? t("common.sending") : <><Send size={14} className="mr-2" />{t("common.sendInquiry")}</>}
         </Button>
       </form>
     </div>
@@ -248,6 +246,7 @@ function PropertyMap({ latitude, longitude, title }: { latitude: string; longitu
 }
 
 export default function PropertyDetail() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/property/:slug");
   const slug = params?.slug || "";
   const [location] = useLocation();
@@ -255,20 +254,12 @@ export default function PropertyDetail() {
 
   const { data: property, isLoading } = trpc.properties.getBySlug.useQuery({ slug });
 
-  // Tell Voice AI which listing the user is viewing
   useEffect(() => {
     if (!pageCtx || !property) return;
     const summary = {
-      id: property.id,
-      slug: property.slug,
-      title: property.title,
-      address: property.address,
-      city: property.city,
-      price: property.price,
-      priceLabel: property.priceLabel,
-      bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      listingType: property.listingType,
+      id: property.id, slug: property.slug, title: property.title, address: property.address,
+      city: property.city, price: property.price, priceLabel: property.priceLabel,
+      bedrooms: property.bedrooms, bathrooms: property.bathrooms, listingType: property.listingType,
       description: property.description,
     };
     pageCtx.setPageContext({ path: location, pageType: "property", visibleListings: [], selectedListing: summary });
@@ -304,16 +295,15 @@ export default function PropertyDetail() {
     return (
       <div className="pt-20 min-h-screen bg-[#f8f6f3] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="font-serif text-2xl text-[#214359] mb-4">Property Not Found</h2>
+          <h2 className="font-serif text-2xl text-[#214359] mb-4">{t("propertyDetail.propertyNotFound")}</h2>
           <Link href="/properties" className="text-[#86C0C7] hover:underline">
-            ← Back to Properties
+            ← {t("common.backToProperties")}
           </Link>
         </div>
       </div>
     );
   }
 
-  // Support both string[] and { url: string; motionDisabled?: boolean }[]
   const rawGallery = (property.galleryImages as (string | { url: string; motionDisabled?: boolean })[]) || [];
   const normalizedGallery = rawGallery.map((item): { url: string; motionDisabled?: boolean } =>
     typeof item === "string" ? { url: item } : { url: item.url, motionDisabled: item.motionDisabled }
@@ -332,31 +322,26 @@ export default function PropertyDetail() {
 
   return (
     <div className="pt-20 bg-[#f8f6f3] min-h-screen">
-      {/* Back link */}
       <div className="bg-white border-b border-border">
         <div className="container py-4">
           <Link href="/properties" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#214359] transition-colors">
             <ArrowLeft size={16} />
-            Back to Properties
+            {t("common.backToProperties")}
           </Link>
         </div>
       </div>
 
       <div className="container py-8">
-        {/* Photo Gallery */}
         <PhotoGallery images={images} />
 
-        {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Title & Price */}
             <div className="bg-white rounded-sm p-8 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="bg-[#86C0C7] text-white text-xs font-medium tracking-wider uppercase px-3 py-1 rounded-sm">
-                      For {property.listingType === "sale" ? "Sale" : "Rent"}
+                      {property.listingType === "sale" ? t("common.forSale") : t("common.forRent")}
                     </span>
                     <span className="bg-[#214359]/10 text-[#214359] text-xs font-medium tracking-wider uppercase px-3 py-1 rounded-sm">
                       {property.propertyType}
@@ -378,14 +363,13 @@ export default function PropertyDetail() {
                 </div>
               </div>
 
-              {/* Key Stats */}
               <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-border">
                 {property.bedrooms && (
                   <div className="flex items-center gap-2">
                     <BedDouble size={20} className="text-[#86C0C7]" />
                     <div>
                       <p className="font-medium text-[#214359]">{property.bedrooms}</p>
-                      <p className="text-xs text-muted-foreground">Bedrooms</p>
+                      <p className="text-xs text-muted-foreground">{t("common.bedrooms")}</p>
                     </div>
                   </div>
                 )}
@@ -394,7 +378,7 @@ export default function PropertyDetail() {
                     <Bath size={20} className="text-[#86C0C7]" />
                     <div>
                       <p className="font-medium text-[#214359]">{property.bathrooms}</p>
-                      <p className="text-xs text-muted-foreground">Bathrooms</p>
+                      <p className="text-xs text-muted-foreground">{t("common.bathrooms")}</p>
                     </div>
                   </div>
                 )}
@@ -403,54 +387,51 @@ export default function PropertyDetail() {
                     <Ruler size={20} className="text-[#86C0C7]" />
                     <div>
                       <p className="font-medium text-[#214359]">{property.area} {property.areaUnit || "ft²"}</p>
-                      <p className="text-xs text-muted-foreground">Living Area</p>
+                      <p className="text-xs text-muted-foreground">{t("common.livingArea")}</p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Action buttons */}
               <div className="flex gap-3 mt-6">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.href);
-                    toast.success("Link copied to clipboard");
+                    toast.success(t("common.linkCopied"));
                   }}
                 >
                   <Share2 size={14} className="mr-2" />
-                  Share
+                  {t("common.share")}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => toast("Feature coming soon")}>
+                <Button variant="outline" size="sm" onClick={() => toast(t("common.featureComingSoon"))}>
                   <Heart size={14} className="mr-2" />
-                  Save
+                  {t("common.save")}
                 </Button>
               </div>
             </div>
 
-            {/* Description */}
             {property.description && (
               <div className="bg-white rounded-sm p-8 shadow-sm">
-                <h2 className="font-serif text-[#214359] text-xl mb-4">Description</h2>
+                <h2 className="font-serif text-[#214359] text-xl mb-4">{t("propertyDetail.description")}</h2>
                 <div className="text-[#214359]/70 leading-relaxed whitespace-pre-line">
                   {property.description}
                 </div>
               </div>
             )}
 
-            {/* Room Details Table */}
             {(property.roomDetails as { name: string; level: string; dimensions: string; flooring?: string }[] | null)?.length > 0 && (
               <div className="bg-white rounded-sm p-8 shadow-sm">
-                <h2 className="font-serif text-[#214359] text-xl mb-4">Room Details</h2>
+                <h2 className="font-serif text-[#214359] text-xl mb-4">{t("propertyDetail.roomDetails")}</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left py-3 px-4 font-medium text-[#214359] uppercase tracking-wider">Room</th>
-                        <th className="text-left py-3 px-4 font-medium text-[#214359] uppercase tracking-wider">Level</th>
-                        <th className="text-left py-3 px-4 font-medium text-[#214359] uppercase tracking-wider">Dimensions</th>
-                        <th className="text-left py-3 px-4 font-medium text-[#214359] uppercase tracking-wider">Flooring</th>
+                        <th className="text-left py-3 px-4 font-medium text-[#214359] uppercase tracking-wider">{t("propertyDetail.room")}</th>
+                        <th className="text-left py-3 px-4 font-medium text-[#214359] uppercase tracking-wider">{t("propertyDetail.level")}</th>
+                        <th className="text-left py-3 px-4 font-medium text-[#214359] uppercase tracking-wider">{t("propertyDetail.dimensions")}</th>
+                        <th className="text-left py-3 px-4 font-medium text-[#214359] uppercase tracking-wider">{t("propertyDetail.flooring")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -468,14 +449,13 @@ export default function PropertyDetail() {
               </div>
             )}
 
-            {/* Features */}
             {features && (
               <div className="bg-white rounded-sm p-8 shadow-sm">
-                <h2 className="font-serif text-[#214359] text-xl mb-4">Property Features</h2>
+                <h2 className="font-serif text-[#214359] text-xl mb-4">{t("propertyDetail.propertyFeatures")}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(features.rooms as { name: string; dimensions?: string }[] | undefined)?.length > 0 && (
                     <div>
-                      <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-3">Rooms</h3>
+                      <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-3">{t("propertyDetail.rooms")}</h3>
                       <ul className="space-y-2">
                         {(features.rooms as { name: string; dimensions?: string }[]).map((room: any, i: number) => (
                           <li key={i} className="text-sm text-[#214359]/70 flex justify-between">
@@ -488,7 +468,7 @@ export default function PropertyDetail() {
                   )}
                   {features.amenities && features.amenities.length > 0 && (
                     <div>
-                      <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-3">Amenities</h3>
+                      <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-3">{t("propertyDetail.amenities")}</h3>
                       <ul className="space-y-2">
                         {features.amenities.map((amenity: string, i: number) => (
                           <li key={i} className="text-sm text-[#214359]/70 flex items-center gap-2">
@@ -501,7 +481,7 @@ export default function PropertyDetail() {
                   )}
                   {features.inclusions && features.inclusions.length > 0 && (
                     <div>
-                      <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-3">Inclusions</h3>
+                      <h3 className="font-medium text-[#214359] text-sm uppercase tracking-wider mb-3">{t("propertyDetail.inclusions")}</h3>
                       <ul className="space-y-2">
                         {features.inclusions.map((item: string, i: number) => (
                           <li key={i} className="text-sm text-[#214359]/70 flex items-center gap-2">
@@ -516,10 +496,9 @@ export default function PropertyDetail() {
               </div>
             )}
 
-            {/* Map */}
             {property.latitude && property.longitude && (
               <div className="bg-white rounded-sm p-8 shadow-sm">
-                <h2 className="font-serif text-[#214359] text-xl mb-4">Location</h2>
+                <h2 className="font-serif text-[#214359] text-xl mb-4">{t("propertyDetail.location")}</h2>
                 <PropertyMap
                   latitude={property.latitude}
                   longitude={property.longitude}
@@ -528,11 +507,9 @@ export default function PropertyDetail() {
               </div>
             )}
 
-            {/* Inline Inquiry Form */}
             <PropertyInquiryForm propertyId={property.id} propertyTitle={property.title} />
           </div>
 
-          {/* Sidebar — Agent Card */}
           <div className="space-y-6">
             <div className="bg-white rounded-sm p-6 shadow-sm sticky top-28">
               <div className="text-center mb-6">
@@ -542,7 +519,7 @@ export default function PropertyDetail() {
                   className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-2 border-[#86C0C7]"
                 />
                 <h3 className="font-serif text-[#214359] text-lg">Theodora Stavropoulos</h3>
-                <p className="text-sm text-muted-foreground">Residential Real Estate Broker</p>
+                <p className="text-sm text-muted-foreground">{t("propertyDetail.residentialBroker")}</p>
                 <p className="text-xs text-muted-foreground mt-1">RE/MAX 3000 Inc.</p>
               </div>
 
@@ -559,13 +536,13 @@ export default function PropertyDetail() {
                   className="flex items-center justify-center gap-2 w-full py-3 border border-[#214359] text-[#214359] font-medium text-sm tracking-wider uppercase rounded-sm hover:bg-[#214359] hover:text-white transition-all"
                 >
                   <Mail size={16} />
-                  Email Me
+                  {t("common.emailMe")}
                 </a>
                 <Link
                   href="/contact"
                   className="flex items-center justify-center gap-2 w-full py-3 border border-border text-muted-foreground font-medium text-sm tracking-wider uppercase rounded-sm hover:bg-muted transition-colors"
                 >
-                  Send Inquiry
+                  {t("common.sendInquiry")}
                 </Link>
               </div>
 
@@ -576,7 +553,7 @@ export default function PropertyDetail() {
                   rel="noopener noreferrer"
                   className="text-sm text-[#86C0C7] hover:underline"
                 >
-                  View RE/MAX Profile →
+                  {t("common.viewRemaxProfile")} →
                 </a>
               </div>
             </div>

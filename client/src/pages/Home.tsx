@@ -2,15 +2,14 @@ import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Link } from "wouter";
 import { MapPin, ArrowRight, Phone, Star, Home as HomeIcon, Key, TrendingUp, Quote, Shield } from "lucide-react";
 import { useAgencyConfig } from "@/contexts/AgencyConfigContext";
+import { useTranslation } from "react-i18next";
 
 const FeaturedListings = lazy(() => import("./FeaturedListings"));
 
-/** Broker headshot (AboutPreview only — not in hero). Set VITE_BROKER_HEADSHOT_URL if default fails. */
 const THEODORA_HEADSHOT =
   import.meta.env.VITE_BROKER_HEADSHOT_URL ||
   "https://files.manuscdn.com/user_upload_by_module/session_file/310519663115065429/FXvMFuJPKwMDlplc.jpeg";
 
-/** Hero background images — omit broken ones; fallback to RE/MAX 3000 logo when none load */
 const HERO_INTERIORS = [
   "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80",
   "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
@@ -43,6 +42,7 @@ function BrokerHeadshot({ src, alt }: { src: string; alt: string }) {
 }
 
 function HeroSection() {
+  const { t } = useTranslation();
   const config = useAgencyConfig();
   const [failedIndices, setFailedIndices] = useState<Set<number>>(new Set());
   const workingUrls = HERO_INTERIORS.filter((_, i) => !failedIndices.has(i));
@@ -76,7 +76,6 @@ function HeroSection() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart.current == null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
-    const minSwipe = 50;
     if (dx > 50) handleSwipe('right');
     else if (dx < -50) handleSwipe('left');
     touchStart.current = null;
@@ -88,18 +87,19 @@ function HeroSection() {
 
   const showLogoFallback = workingUrls.length === 0;
 
+  // Parse hero title to render <em> tag
+  const heroTitleParts = t("home.heroTitle").split(/<em>(.*?)<\/em>/);
+
   return (
     <section
       className="relative w-full min-h-[max(85vh,400px)] sm:min-h-[max(85vh,500px)] md:min-h-[max(85vh,600px)] overflow-hidden touch-pan-y"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Gradient background (always visible; images layer on top) */}
       <div
         className="absolute inset-0 z-0 bg-gradient-to-br from-[#1B3A4B] via-[#214359] to-[#2d5a6e]"
         aria-hidden
       />
-      {/* RE/MAX 3000 logo when no hero images load — exact official logo */}
       {showLogoFallback && (
         <div className="absolute inset-0 z-[1] flex items-center justify-center" aria-hidden>
           <div className="text-center">
@@ -112,7 +112,6 @@ function HeroSection() {
           </div>
         </div>
       )}
-      {/* Hero slideshow — cinematic Ken Burns with varied motion per slide */}
       {!showLogoFallback &&
         HERO_INTERIORS.map((src, i) =>
           failedIndices.has(i) ? null : (
@@ -134,7 +133,6 @@ function HeroSection() {
             </div>
           )
         )}
-      {/* Subtle vignette overlay — cinematic depth */}
       {!showLogoFallback && (
         <div
           className="absolute inset-0 z-[2] pointer-events-none"
@@ -145,50 +143,50 @@ function HeroSection() {
         />
       )}
 
-      {/* Text content overlaid on top — subtle shadow for readability without overlay */}
       <div className="relative z-20 h-full min-h-[600px] flex flex-col justify-center pt-20 pb-20">
         <div className="container">
           <div className="max-w-2xl animate-fade-in-up [text-shadow:0_2px_12px_rgba(0,0,0,0.5)]">
             <p className="text-[#86C0C7] text-sm font-medium tracking-[0.3em] uppercase mb-6">
-              {config.brokerName} — Residential Real Estate Broker
+              {t("home.brokerSubtitle", { name: config.brokerName })}
             </p>
             <h1 className="font-serif text-white text-4xl sm:text-5xl lg:text-6xl leading-tight mb-6">
-              Find Your <em className="italic text-[#86C0C7]">Perfect Home</em> in Montréal
+              {heroTitleParts.length === 3 ? (
+                <>{heroTitleParts[0]}<em className="italic text-[#86C0C7]">{heroTitleParts[1]}</em>{heroTitleParts[2]}</>
+              ) : (
+                t("home.heroTitle")
+              )}
             </h1>
             <p className="text-white/90 text-lg leading-relaxed mb-8 max-w-lg">
-              With personalized service in {config.languages.join(", ").toLowerCase()}, I'm dedicated to making your
-              real estate journey seamless and successful.
+              {t("home.heroDescription", { languages: config.languages.join(", ").toLowerCase() })}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/properties"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#86C0C7] text-white font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#6AABB3] transition-all duration-300"
               >
-                View Properties
+                {t("common.viewProperties")}
                 <ArrowRight size={16} />
               </Link>
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-white/30 text-white font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-white/10 transition-all duration-300"
               >
-                Get in Touch
+                {t("common.getInTouch")}
               </Link>
             </div>
 
-            {/* Quick links */}
             <div className="flex flex-wrap gap-3 mt-8">
-              <Link href="/selling" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">I'm looking to sell</Link>
+              <Link href="/selling" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">{t("home.lookingToSell")}</Link>
               <span className="text-white/40">|</span>
-              <Link href="/buying" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">I'm looking to buy</Link>
+              <Link href="/buying" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">{t("home.lookingToBuy")}</Link>
               <span className="text-white/40">|</span>
-              <Link href="/renting" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">I'm looking to rent</Link>
+              <Link href="/renting" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">{t("home.lookingToRent")}</Link>
               <span className="text-white/40">|</span>
-              <Link href="/get-a-quote" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">Get A Quote</Link>
+              <Link href="/get-a-quote" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">{t("nav.getAQuote")}</Link>
               <span className="text-white/40">|</span>
-              <Link href="/contact" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">Message Us</Link>
+              <Link href="/contact" className="text-white/80 hover:text-[#86C0C7] text-sm tracking-wider uppercase transition-colors">{t("home.messageUs")}</Link>
             </div>
 
-            {/* Stats */}
             <div className="flex gap-8 mt-12 pt-8 border-t border-white/20">
               <div>
                 <p className="font-serif text-white text-3xl">RE/MAX</p>
@@ -196,18 +194,17 @@ function HeroSection() {
               </div>
               <div>
                 <p className="font-serif text-white text-3xl">{config.languages.length}</p>
-                <p className="text-white/60 text-sm mt-1">Languages (EN, FR, GR)</p>
+                <p className="text-white/60 text-sm mt-1">{t("home.languagesCount")}</p>
               </div>
               <div>
                 <p className="font-serif text-white text-3xl">MTL</p>
-                <p className="text-white/60 text-sm mt-1">Based</p>
+                <p className="text-white/60 text-sm mt-1">{t("home.based")}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce">
         <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
           <div className="w-1 h-3 bg-[#86C0C7] rounded-full" />
@@ -218,11 +215,11 @@ function HeroSection() {
 }
 
 function AboutPreview() {
+  const { t } = useTranslation();
   return (
     <section className="py-24 bg-[#f8f6f3]">
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* Image */}
           <div className="animate-slide-in-left">
             <div className="relative">
               <div className="absolute -bottom-4 -left-4 w-full h-full bg-[#86C0C7]/10 rounded-sm" />
@@ -230,26 +227,21 @@ function AboutPreview() {
             </div>
           </div>
 
-          {/* Content */}
           <div>
             <p className="text-[#86C0C7] text-sm font-medium tracking-[0.2em] uppercase mb-4">
-              TS | YOUR BROKER
+              TS | {t("home.yourBroker")}
             </p>
             <h2 className="font-serif text-[#214359] text-3xl sm:text-4xl mb-6 italic">
-              Your Montréal Real Estate Expert
+              {t("home.montrealExpert")}
             </h2>
             <div className="w-16 h-0.5 bg-[#86C0C7] mb-8" />
             <p className="text-[#214359]/70 leading-relaxed mb-6">
-              As a Residential Real Estate Broker at RE/MAX 3000 Inc., I bring dedication, market knowledge,
-              and a personal touch to every transaction. Whether you're looking to buy, sell, or rent in
-              Montréal, I'm here to guide you every step of the way.
+              {t("home.aboutPreviewP1")}
             </p>
             <p className="text-[#214359]/70 leading-relaxed mb-8">
-              Fluent in English, French, and Greek, I serve a diverse clientele across Montréal's vibrant
-              neighborhoods — from the Plateau to Villeray, Saint-Laurent to Ville-Marie.
+              {t("home.aboutPreviewP2")}
             </p>
 
-            {/* Highlights */}
             <div className="grid grid-cols-2 gap-6 mb-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-[#86C0C7]/10 rounded-full flex items-center justify-center">
@@ -257,7 +249,7 @@ function AboutPreview() {
                 </div>
                 <div>
                   <p className="font-medium text-[#214359] text-sm">RE/MAX 3000</p>
-                  <p className="text-[#214359]/50 text-xs">Trusted Agency</p>
+                  <p className="text-[#214359]/50 text-xs">{t("home.trustedAgency")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -266,7 +258,7 @@ function AboutPreview() {
                 </div>
                 <div>
                   <p className="font-medium text-[#214359] text-sm">Montréal</p>
-                  <p className="text-[#214359]/50 text-xs">Local Expert</p>
+                  <p className="text-[#214359]/50 text-xs">{t("home.localExpert")}</p>
                 </div>
               </div>
             </div>
@@ -275,7 +267,7 @@ function AboutPreview() {
               href="/about"
               className="inline-flex items-center gap-2 text-[#86C0C7] font-medium tracking-wider uppercase text-sm hover:gap-3 transition-all duration-300"
             >
-              Learn More About Me
+              {t("home.learnMoreAboutMe")}
               <ArrowRight size={16} />
             </Link>
           </div>
@@ -286,6 +278,7 @@ function AboutPreview() {
 }
 
 function TranquilliTSection() {
+  const { t } = useTranslation();
   const config = useAgencyConfig();
   if (!config.tranquilliT) return null;
   return (
@@ -298,13 +291,13 @@ function TranquilliTSection() {
             </div>
             <div>
               <p className="text-[#86C0C7] text-sm font-medium tracking-[0.2em] uppercase mb-1">
-                Broker participating in the Tranquilli-T program
+                {t("home.tranquilliT")}
               </p>
               <h3 className="font-serif text-[#214359] text-xl">
-                Peace of mind guaranteed!
+                {t("home.peaceOfMind")}
               </h3>
               <p className="text-[#214359]/70 text-sm mt-1">
-                Exclusive protection to safeguard you in 4 components
+                {t("home.tranquilliTDesc")}
               </p>
             </div>
           </div>
@@ -314,7 +307,7 @@ function TranquilliTSection() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#214359] text-white font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#1a3648] transition-colors shrink-0"
           >
-            Find out more
+            {t("home.findOutMore")}
             <ArrowRight size={16} />
           </a>
         </div>
@@ -324,23 +317,24 @@ function TranquilliTSection() {
 }
 
 function ServicesSection() {
+  const { t } = useTranslation();
   const services = [
     {
       icon: HomeIcon,
-      title: "Buying",
-      description: "Find your dream home with expert guidance through every step of the buying process.",
+      title: t("home.buyingTitle"),
+      description: t("home.buyingDesc"),
       link: "/properties?listingType=sale",
     },
     {
       icon: Key,
-      title: "Renting",
-      description: "Discover rental properties that match your lifestyle and budget in Montréal.",
+      title: t("home.rentingTitle"),
+      description: t("home.rentingDesc"),
       link: "/properties?listingType=rent",
     },
     {
       icon: TrendingUp,
-      title: "Selling",
-      description: "Maximize your property's value with strategic pricing and professional marketing.",
+      title: t("home.sellingTitle"),
+      description: t("home.sellingDesc"),
       link: "/contact",
     },
   ];
@@ -348,10 +342,10 @@ function ServicesSection() {
     <section className="py-24 bg-[#1B3A4B]">
       <div className="container">
         <p className="text-[#86C0C7] text-sm font-medium tracking-[0.2em] uppercase mb-4">
-          TS | SERVICES
+          TS | {t("home.services")}
         </p>
         <h2 className="font-serif text-white text-3xl sm:text-4xl mb-12 italic">
-          How I Can Help
+          {t("home.howCanHelp")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {services.map((s) => (
@@ -367,7 +361,7 @@ function ServicesSection() {
                 href={s.link}
                 className="inline-flex items-center gap-2 text-[#86C0C7] font-medium tracking-wider uppercase text-sm hover:gap-3 transition-all duration-300"
               >
-                Learn More
+                {t("common.learnMore")}
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -379,41 +373,36 @@ function ServicesSection() {
 }
 
 function TestimonialsSection() {
+  const { t } = useTranslation();
   const testimonials = [
-    {
-      quote: "Theodora made our home-buying experience seamless. Her knowledge of Montréal's neighborhoods is unmatched.",
-      author: "Marie & Jean",
-    },
-    {
-      quote: "Professional, responsive, and truly cares about finding the right fit. We couldn't have asked for a better broker.",
-      author: "Alex K.",
-    },
+    { quote: t("home.testimonial1"), author: "Marie & Jean" },
+    { quote: t("home.testimonial2"), author: "Alex K." },
   ];
   return (
     <section className="py-24 bg-white">
       <div className="container">
         <p className="text-[#86C0C7] text-sm font-medium tracking-[0.2em] uppercase mb-4">
-          TS | TESTIMONIALS
+          TS | {t("home.testimonials")}
         </p>
         <h2 className="font-serif text-[#214359] text-3xl sm:text-4xl mb-12 italic">
-          What Clients Say
+          {t("home.whatClientsSay")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {testimonials.map((t, i) => (
+          {testimonials.map((testimonial, i) => (
             <div
               key={i}
               className="p-8 border border-[#E8F4F4] rounded-sm bg-[#E8F4F4]/30"
             >
               <Quote className="w-10 h-10 text-[#86C0C7]/50 mb-4" />
               <p className="font-serif text-[#214359] text-lg italic mb-6">
-                "{t.quote}"
+                "{testimonial.quote}"
               </p>
-              <p className="text-[#214359]/70 text-sm">— {t.author}</p>
+              <p className="text-[#214359]/70 text-sm">— {testimonial.author}</p>
             </div>
           ))}
         </div>
         <p className="mt-8 text-center text-[#214359]/60 text-sm">
-          RE/MAX 3000 Inc. • Tranquilli-T Certified
+          {t("home.tranquilliTCertified")}
         </p>
       </div>
     </section>
@@ -421,6 +410,8 @@ function TestimonialsSection() {
 }
 
 function CTASection() {
+  const { t } = useTranslation();
+  const ctaTitleParts = t("home.readyToFind").split(/<em>(.*?)<\/em>/);
   return (
     <section className="relative py-24 bg-[#214359]">
       <div className="absolute inset-0 opacity-5" style={{
@@ -428,18 +419,21 @@ function CTASection() {
       }} />
       <div className="container relative z-10 text-center">
         <h2 className="font-serif text-white text-3xl sm:text-4xl mb-6 italic">
-          Ready to Find Your <em className="italic text-[#86C0C7]">Home</em>?
+          {ctaTitleParts.length === 3 ? (
+            <>{ctaTitleParts[0]}<em className="italic text-[#86C0C7]">{ctaTitleParts[1]}</em>{ctaTitleParts[2]}</>
+          ) : (
+            t("home.readyToFind")
+          )}
         </h2>
         <p className="text-white/60 text-lg max-w-2xl mx-auto mb-10">
-          Whether you're buying, selling, or renting, I'm here to help. Let's start a conversation
-          about your real estate goals.
+          {t("home.readyToFindDesc")}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/contact"
             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#86C0C7] text-white font-medium tracking-wider uppercase text-sm rounded-sm hover:bg-[#6AABB3] transition-colors duration-300"
           >
-            Get in Touch
+            {t("common.getInTouch")}
             <ArrowRight size={16} />
           </Link>
           <a
