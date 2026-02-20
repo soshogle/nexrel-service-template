@@ -103,7 +103,7 @@ console.log("Created single handler at .vercel/output/functions/index.func");
 
 // 3. config.json - static first, API to function, SPA fallback on filesystem miss
 // API routes MUST be rewritten before filesystem
-// Use handle: miss so SPA fallback runs explicitly after filesystem misses (fixes /properties, /property/:slug loading)
+// Explicit SPA routes ensure /market-appraisal, /properties, etc. never 404
 const config = {
   version: 3,
   routes: [
@@ -111,7 +111,8 @@ const config = {
     { src: "^/api/(.*)$", dest: "/index?__path=api/$1" },
     { handle: "filesystem" },
     { handle: "miss" },
-    { src: "^(?!\\/api\\/)(?!\\/assets\\/)(?!\\/index\\.html$)(.*)", dest: "/index?__path=$1", check: true },
+    // SPA fallback: route MUST have check: true after handle: miss (Vercel requirement)
+    { src: "^(?!\\/api\\/)(?!\\/assets\\/)(?!\\/favicon)(?!\\/index\\.html$)(.*)", dest: "/index?__path=$1", check: true },
   ],
 };
 fs.writeFileSync(

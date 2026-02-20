@@ -20,7 +20,7 @@ export default function FeaturedListings() {
 
   const formatPrice = (price: string, label?: string | null) => {
     const num = parseFloat(price);
-    return `$${num.toLocaleString()}${label ? `/${label}` : "/mo"}`;
+    return `$${num.toLocaleString()}${label ? `/${label}` : ""}`;
   };
 
   useEffect(() => {

@@ -281,7 +281,12 @@ export default function ElevenLabsVoiceAgent({ agentId, websiteId, customPrompt,
           attempt(600);
           attempt(1200);
         },
-        onDisconnect: () => {
+        onDisconnect: (details?: unknown) => {
+          // Only log unexpected disconnects (user-initiated reason:"user" is normal)
+          const d = details as { reason?: string } | null | undefined;
+          if (typeof d === "object" && d !== null && (!d.reason || d.reason !== "user")) {
+            console.log("[Voice] Disconnected", JSON.stringify(details));
+          }
           audioConnectedRef.current = false;
           setIsConnected(false);
           setIsAgentSpeaking(false);

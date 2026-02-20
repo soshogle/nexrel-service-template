@@ -12,7 +12,7 @@ import { MapView } from "@/components/Map";
 function PropertyCard({ property }: { property: any }) {
   const formatPrice = (price: string, label?: string | null) => {
     const num = parseFloat(price);
-    return `$${num.toLocaleString()}${label ? `/${label}` : "/mo"}`;
+    return `$${num.toLocaleString()}${label ? `/${label}` : ""}`;
   };
 
   return (
@@ -98,7 +98,7 @@ function PropertyMapView({ properties }: { properties: any[] }) {
             <img src="${property.mainImageUrl}" alt="${property.title}" style="width:100%;height:150px;object-fit:cover;border-radius:4px;margin-bottom:8px;" />
             <h3 style="font-family:'Libre Baskerville',serif;font-size:16px;color:#214359;margin:0 0 4px;">${property.title}</h3>
             <p style="font-size:13px;color:#666;margin:0 0 4px;">${property.address}, ${property.city}</p>
-            <p style="font-size:16px;font-weight:600;color:#214359;margin:0;">$${parseFloat(property.price).toLocaleString()}${property.priceLabel ? `/${property.priceLabel}` : "/mo"}</p>
+            <p style="font-size:16px;font-weight:600;color:#214359;margin:0;">$${parseFloat(property.price).toLocaleString()}${property.priceLabel ? `/${property.priceLabel}` : ""}</p>
             <a href="/property/${property.slug}" style="display:inline-block;margin-top:8px;color:#86C0C7;font-size:13px;text-decoration:none;">View Details →</a>
           </div>
         `,

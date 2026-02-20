@@ -10,7 +10,6 @@ function loadMapScript(): Promise<void> {
     const script = document.createElement("script");
     script.src = MAP_SCRIPT_BASE;
     script.async = true;
-    script.crossOrigin = "anonymous";
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("Failed to load Google Maps script"));
     document.head.appendChild(script);

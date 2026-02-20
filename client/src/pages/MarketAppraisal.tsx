@@ -89,9 +89,16 @@ export default function MarketAppraisal() {
           },
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(data.error || "Evaluation failed. Please try again.");
+        const msg =
+          data?.error ||
+          (res.status === 404
+            ? "This service is not configured. Please contact the site owner."
+            : res.status === 503
+              ? "Service temporarily unavailable. Please try again later."
+              : "Evaluation failed. Please try again.");
+        toast.error(msg);
         return;
       }
       setStep("success");

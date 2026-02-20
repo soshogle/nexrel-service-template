@@ -5,6 +5,13 @@ import { eq, ilike, and, or, desc, asc, sql } from "drizzle-orm";
 import type { InsertUser, InsertProperty, InsertBrokerProfile, InsertInquiry } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
+const ACCENT_FROM = 'àáâãäåæèéêëìíîïòóôõöùúûüýÿñçÀÁÂÃÄÅÆÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝŸÑÇ';
+const ACCENT_TO   = 'aaaaaaaeeeeiiiioooooouuuuyyncAAAAAAAEEEEIIIIOOOOOUUUUYYNC';
+
+function unaccentIlike(column: any, term: string) {
+  return sql`translate(lower(${column}), ${ACCENT_FROM}, ${ACCENT_TO}) LIKE translate(lower(${term}), ${ACCENT_FROM}, ${ACCENT_TO})`;
+}
+
 let _db: ReturnType<typeof drizzle> | null = null;
 
 export async function getDb() {
@@ -128,7 +135,7 @@ export async function getProperties(opts?: {
     conditions.push(sql`COALESCE(${schema.properties.bathrooms}, 0) >= ${opts.bathrooms}`);
   }
   if (opts?.city) {
-    conditions.push(ilike(schema.properties.city, `%${opts.city}%`));
+    conditions.push(unaccentIlike(schema.properties.city, `%${opts.city}%`));
   }
   if (opts?.featured) {
     conditions.push(eq(schema.properties.isFeatured, true));
@@ -145,11 +152,11 @@ export async function getProperties(opts?: {
     const searchTerm = `%${opts.search}%`;
     conditions.push(
       or(
-        ilike(schema.properties.title, searchTerm),
-        ilike(schema.properties.address, searchTerm),
-        ilike(schema.properties.neighborhood, searchTerm),
-        ilike(schema.properties.city, searchTerm),
-        ilike(schema.properties.description, searchTerm)
+        unaccentIlike(schema.properties.title, searchTerm),
+        unaccentIlike(schema.properties.address, searchTerm),
+        unaccentIlike(schema.properties.neighborhood, searchTerm),
+        unaccentIlike(schema.properties.city, searchTerm),
+        unaccentIlike(schema.properties.description, searchTerm)
       )!
     );
   }

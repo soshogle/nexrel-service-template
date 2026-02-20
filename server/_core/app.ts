@@ -250,7 +250,15 @@ export function createApp() {
     const websiteId = process.env.NEXREL_WEBSITE_ID;
     const secret = process.env.WEBSITE_VOICE_CONFIG_SECRET;
     if (!crmUrl || !websiteId) {
-      res.status(503).json({ error: "CRM not configured" });
+      res.status(503).json({
+        error: "Property evaluation is not configured. Please contact the site owner.",
+      });
+      return;
+    }
+    if (!secret) {
+      res.status(503).json({
+        error: "Website authentication not configured. Please contact the site owner.",
+      });
       return;
     }
     try {
@@ -258,15 +266,27 @@ export function createApp() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(secret ? { "x-website-secret": secret } : {}),
+          "x-website-secret": secret,
         },
         body: JSON.stringify(req.body || {}),
       });
-      const data = await resp.json();
-      res.status(resp.ok ? 200 : resp.status).json(data);
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        const msg =
+          resp.status === 404
+            ? "This website is not registered. Please contact the site owner."
+            : resp.status === 401
+              ? "Authentication failed. Please contact the site owner."
+              : (data?.error as string) || "Evaluation failed. Please try again.";
+        res.status(resp.status).json({ error: msg });
+        return;
+      }
+      res.status(200).json(data);
     } catch (err) {
       console.error("[property-evaluation proxy]", err);
-      res.status(502).json({ error: "Failed to run evaluation" });
+      res.status(502).json({
+        error: "Unable to reach the evaluation service. Please try again later.",
+      });
     }
   });
 
