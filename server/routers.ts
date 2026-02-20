@@ -256,6 +256,39 @@ export const appRouter = router({
           phone: input.phone || null,
           message: input.message,
         });
+
+        // Push inquiry to CRM as a lead
+        const crmUrl = process.env.NEXREL_CRM_URL;
+        const websiteId = process.env.NEXREL_WEBSITE_ID;
+        const secret = process.env.WEBSITE_VOICE_CONFIG_SECRET;
+        if (crmUrl && websiteId) {
+          try {
+            let propertyAddress: string | undefined;
+            if (input.propertyId) {
+              const prop = await db.getPropertyById(input.propertyId);
+              propertyAddress = prop?.address || undefined;
+            }
+            await fetch(`${crmUrl.replace(/\/$/, "")}/api/webhooks/website-inquiry`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(secret ? { "x-website-secret": secret } : {}),
+              },
+              body: JSON.stringify({
+                websiteId,
+                name: input.name,
+                email: input.email,
+                phone: input.phone || undefined,
+                message: input.message,
+                propertyId: input.propertyId || undefined,
+                propertyAddress,
+              }),
+            });
+          } catch (e) {
+            console.warn("[inquiries.submit] CRM push failed:", e);
+          }
+        }
+
         return { success: true, id: inquiry.id };
       }),
 
