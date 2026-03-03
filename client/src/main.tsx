@@ -11,6 +11,13 @@ import "./i18n";
 import "./index.css";
 
 console.log("[nexrel] imports done");
+
+window.addEventListener("error", (ev) => {
+  if (ev.message?.includes("185") || ev.message?.includes("Objects are not valid")) {
+    console.error("[nexrel] React #185 caught — check for non-string React children. Error:", ev.error);
+  }
+});
+
 const el0 = document.getElementById("loading-fallback");
 if (el0) el0.textContent = "Loading... (1)";
 console.log("[nexrel] step 1");

@@ -106,7 +106,7 @@ export default function Contact() {
               onClick={() => setSubmitted(false)}
               className="bg-[#86C0C7] hover:bg-[#6AABB3] text-white tracking-wider uppercase text-sm px-8 py-3"
             >
-              {t("contact.sendAnother")}
+              {String(t("contact.sendAnother"))}
             </Button>
           </div>
         </section>
@@ -182,15 +182,20 @@ export default function Contact() {
                     onValueChange={(v) => setFormData({ ...formData, propertyOfInterest: v })}
                   >
                     <SelectTrigger className="border-[#214359]/20 focus:border-[#86C0C7] rounded-sm h-12">
-                      <SelectValue placeholder={t("contact.selectProperty")} />
+                      <SelectValue placeholder={String(t("contact.selectProperty"))} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">{t("contact.generalInquiry")}</SelectItem>
-                      {propertyOptions.map((p) => (
-                        <SelectItem key={p.id} value={p.id.toString()}>
-                          {p.title} — ${parseFloat(p.price).toLocaleString()}{p.priceLabel ? `/${p.priceLabel}` : ""}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="none">{String(t("contact.generalInquiry"))}</SelectItem>
+                      {propertyOptions.map((p) => {
+                        const safeTitle = typeof p.title === "string" ? p.title : "Property";
+                        const safePrice = typeof p.price === "string" ? p.price : "0";
+                        const safePriceLabel = typeof p.priceLabel === "string" && p.priceLabel ? `/${p.priceLabel}` : "";
+                        return (
+                          <SelectItem key={p.id} value={p.id.toString()}>
+                            {safeTitle} — ${parseFloat(safePrice).toLocaleString()}{safePriceLabel}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
@@ -213,11 +218,11 @@ export default function Contact() {
                   className="w-full bg-[#86C0C7] hover:bg-[#6AABB3] text-white tracking-wider uppercase text-sm py-4 h-auto rounded-sm"
                 >
                   {submitInquiry.isPending ? (
-                    t("common.sending")
+                    String(t("common.sending"))
                   ) : (
                     <>
                       <Send size={16} className="mr-2" />
-                      {t("common.sendMessage")}
+                      {String(t("common.sendMessage"))}
                     </>
                   )}
                 </Button>

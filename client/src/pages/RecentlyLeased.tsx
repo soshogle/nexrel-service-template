@@ -3,6 +3,13 @@ import { trpc } from "@/lib/trpc";
 import { PageHero } from "@/components/PageHero";
 import { ArrowRight } from "lucide-react";
 
+const safeStr = (v: unknown, fallback = ""): string => {
+  if (v == null) return fallback;
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  return fallback;
+};
+
 export default function RecentlyLeased() {
   const { data, isLoading } = trpc.properties.list.useQuery({ status: "rented", limit: 20 });
   const properties = data?.items ?? [];
@@ -27,13 +34,13 @@ export default function RecentlyLeased() {
           ) : properties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {properties.map((p) => (
-                <Link key={p.id} href={`/property/${p.slug}`} className="group block">
+                <Link key={p.id} href={`/property/${safeStr(p.slug, String(p.id))}`} className="group block">
                   <div className="relative overflow-hidden rounded-sm aspect-[4/3]">
-                    <img src={p.mainImageUrl || "/placeholder.jpg"} alt={p.title} className="listing-img-zoom w-full h-full object-cover" />
+                    <img src={safeStr(p.mainImageUrl, "/placeholder.jpg")} alt={safeStr(p.title, "Property")} className="listing-img-zoom w-full h-full object-cover" />
                     <div className="absolute top-4 left-4 bg-[#86C0C7] text-white px-3 py-1 text-sm font-medium uppercase">Leased</div>
                     <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
-                      <p className="font-serif text-white text-lg">${parseFloat(p.price).toLocaleString()}/mo</p>
-                      <p className="text-white/80 text-sm">{p.address}, {p.city}</p>
+                      <p className="font-serif text-white text-lg">${parseFloat(safeStr(p.price, "0")).toLocaleString()}/mo</p>
+                      <p className="text-white/80 text-sm">{safeStr(p.address)}{safeStr(p.city) ? `, ${safeStr(p.city)}` : ""}</p>
                     </div>
                   </div>
                 </Link>

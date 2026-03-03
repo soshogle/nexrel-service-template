@@ -98,6 +98,14 @@ function SelectLabel({
   );
 }
 
+function safeItemChild(node: React.ReactNode): React.ReactNode {
+  if (node == null) return "";
+  if (typeof node === "string" || typeof node === "number") return node;
+  if (React.isValidElement(node)) return node;
+  if (Array.isArray(node)) return node.map(safeItemChild);
+  return String(node);
+}
+
 function SelectItem({
   className,
   children,
@@ -117,7 +125,7 @@ function SelectItem({
           <CheckIcon className="size-4" />
         </SelectPrimitive.ItemIndicator>
       </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemText>{safeItemChild(children)}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   );
 }

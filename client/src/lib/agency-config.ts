@@ -19,14 +19,13 @@ export const DEFAULT_NAV_CONFIG: NavConfig = {
     { label: "Buying", href: "/buying", children: [{ label: "For Sale", href: "/for-sale" }, { label: "Prestige Properties", href: "/prestige" }, { label: "Secret Properties", href: "/secret-properties" }] },
     { label: "Renting", href: "/renting", children: [{ label: "For Lease", href: "/for-lease" }] },
     { label: "About", href: "/about", children: undefined },
-    { label: "News & Media", href: "/news", children: [{ label: "Blog", href: "/blog" }] },
+    { label: "News & Media", href: "/news", children: [{ label: "Blog", href: "/blog" }, { label: "Videos", href: "/videos" }, { label: "Podcasts", href: "/podcasts" }] },
   ],
   topLinks: [
     { label: "Home", href: "/" },
     { label: "Properties", href: "/properties" },
-    { label: "Get A Quote", href: "/get-a-quote" },
-    { label: "Contact", href: "/contact" },
     { label: "Secret Properties", href: "/secret-properties" },
+    { label: "Contact", href: "/contact" },
   ],
   footerLinks: [
     { label: "Properties", href: "/properties" },

@@ -13,6 +13,13 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 
+const safeStr = (v: unknown, fallback = ""): string => {
+  if (v == null) return fallback;
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  return fallback;
+};
+
 export default function FeaturedListings() {
   const { t } = useTranslation();
   const config = useAgencyConfig();
@@ -20,9 +27,10 @@ export default function FeaturedListings() {
   const [current, setCurrent] = useState(0);
   const { data: properties, isLoading } = trpc.properties.featured.useQuery({ limit: 4 });
 
-  const formatPrice = (price: string, label?: string | null) => {
-    const num = parseFloat(price);
-    return `$${num.toLocaleString()}${label ? `/${label}` : ""}`;
+  const formatPrice = (price: unknown, label?: unknown) => {
+    const num = parseFloat(safeStr(price, "0"));
+    const l = safeStr(label);
+    return `$${num.toLocaleString()}${l ? `/${l}` : ""}`;
   };
 
   useEffect(() => {
@@ -87,56 +95,48 @@ export default function FeaturedListings() {
               <CarouselContent className="-ml-4">
                 {realListings.map((property) => (
                   <CarouselItem key={property.id} className="pl-4 basis-[min(400px,85vw)]">
-                    <Link href={`/property/${property.slug}`} className="group property-card block">
-                      <div className="relative overflow-hidden rounded-sm aspect-[4/3]">
+                    <Link href={`/property/${property.slug}`} className="group property-card block bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+                      <div className="relative overflow-hidden aspect-[4/3]">
                         <img
-                          src={property.mainImageUrl}
-                          alt={property.title}
+                          src={safeStr(property.mainImageUrl, "/placeholder.jpg")}
+                          alt={safeStr(property.title, "Property")}
                           className="listing-img-zoom w-full h-full object-cover"
                         />
-                        <div
-                          className="absolute inset-0 pointer-events-none"
-                          aria-hidden
-                          style={{
-                            background: "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(0,0,0,0.35) 100%)",
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                        <div className="absolute top-4 left-4 bg-[#214359]/90 backdrop-blur-sm px-4 py-2 rounded-sm">
-                          <p className="text-white font-medium text-lg">
+                        <div className="absolute top-4 right-4 bg-[#86C0C7] px-3 py-1 rounded-sm">
+                          <p className="text-white text-xs font-medium tracking-wider uppercase">
+                            {property.listingType === "sale" ? String(t("common.forSale")) : String(t("common.forRent"))}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-serif text-[#214359] text-lg group-hover:text-[#86C0C7] transition-colors line-clamp-1">
+                            {safeStr(property.title, "Listing")}
+                          </h3>
+                          <p className="text-[#214359] font-semibold text-lg shrink-0 ml-3">
                             {formatPrice(property.price, property.priceLabel)}
                           </p>
                         </div>
-                        <div className="absolute top-4 right-4 bg-[#86C0C7] px-3 py-1 rounded-sm">
-                          <p className="text-white text-xs font-medium tracking-wider uppercase">
-                            {property.listingType === "sale" ? t("common.forSale") : t("common.forRent")}
-                          </p>
+                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
+                          <MapPin size={14} className="shrink-0" />
+                          <span className="line-clamp-1">
+                            {safeStr(property.address)}{safeStr(property.city) ? `, ${safeStr(property.city)}` : ""}
+                          </span>
                         </div>
-                        <div className="absolute bottom-0 left-0 right-0 p-6">
-                          <h3 className="font-serif text-white text-xl mb-2 group-hover:text-[#86C0C7] transition-colors">
-                            {property.title}
-                          </h3>
-                          <div className="flex items-center gap-2 text-white/70 text-sm">
-                            <MapPin size={14} />
-                            <span>{property.address}, {property.city}</span>
-                          </div>
-                          <div className="flex items-center gap-4 mt-3 text-white/70 text-sm">
-                            {property.bedrooms && (
-                              <span className="flex items-center gap-1">
-                                <BedDouble size={14} />
-                                {property.bedrooms} {t("common.beds")}
-                              </span>
-                            )}
-                            {property.bathrooms && (
-                              <span className="flex items-center gap-1">
-                                <Bath size={14} />
-                                {property.bathrooms} {t("common.bath")}
-                              </span>
-                            )}
-                            {property.area && (
-                              <span>{property.area} {property.areaUnit || "ft²"}</span>
-                            )}
-                          </div>
+                        <div className="flex items-center gap-4 text-muted-foreground text-sm border-t border-border pt-3">
+                          {property.bedrooms != null && Number(property.bedrooms) > 0 && (
+                            <span className="flex items-center gap-1">
+                              <BedDouble size={14} /> {String(property.bedrooms)} {String(t("common.beds"))}
+                            </span>
+                          )}
+                          {property.bathrooms != null && Number(property.bathrooms) > 0 && (
+                            <span className="flex items-center gap-1">
+                              <Bath size={14} /> {String(property.bathrooms)} {String(t("common.bath"))}
+                            </span>
+                          )}
+                          {property.area && (
+                            <span>{safeStr(property.area)} {safeStr(property.areaUnit, "ft²")}</span>
+                          )}
                         </div>
                       </div>
                     </Link>

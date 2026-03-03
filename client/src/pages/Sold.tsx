@@ -12,12 +12,19 @@ export default function Sold() {
   });
   const properties = data?.items ?? [];
 
+  const safeStr = (v: unknown, fallback = ""): string => {
+    if (v == null) return fallback;
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    return fallback;
+  };
+
   return (
     <div className="pt-20">
       <PageHero
-        label={t("sold.label")}
-        title={t("sold.title")}
-        subtitle={t("sold.subtitle")}
+        label={String(t("sold.label"))}
+        title={String(t("sold.title"))}
+        subtitle={String(t("sold.subtitle"))}
       />
       <section className="py-24 bg-[#f8f6f3]">
         <div className="container">
@@ -38,21 +45,21 @@ export default function Sold() {
               {properties.map((p) => (
                 <Link key={p.id} href={`/property/${p.slug}`} className="group block">
                   <div className="relative overflow-hidden rounded-sm aspect-[4/3]">
-                    <img src={p.mainImageUrl || "/placeholder.jpg"} alt={p.title} className="listing-img-zoom w-full h-full object-cover" />
-                    <div className="absolute top-4 left-4 bg-[#214359] text-white px-3 py-1 text-sm font-medium uppercase">{t("common.sold")}</div>
-                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
-                      <p className="font-serif text-white text-lg">${parseFloat(p.price).toLocaleString()}</p>
-                      <p className="text-white/80 text-sm">{p.address}, {p.city}</p>
-                    </div>
+                    <img src={safeStr(p.mainImageUrl, "/placeholder.jpg")} alt={safeStr(p.title, "Property")} className="listing-img-zoom w-full h-full object-cover" />
+                    <div className="absolute top-4 left-4 bg-[#214359] text-white px-3 py-1 text-sm font-medium uppercase">{String(t("common.sold"))}</div>
+                  </div>
+                  <div className="p-4">
+                    <p className="font-serif text-[#214359] text-lg">${parseFloat(safeStr(p.price, "0")).toLocaleString()}</p>
+                    <p className="text-muted-foreground text-sm">{safeStr(p.address)}{safeStr(p.city) ? `, ${safeStr(p.city)}` : ""}</p>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-[#214359]/70 text-lg">{t("sold.noSold")}</p>
+              <p className="text-[#214359]/70 text-lg">{String(t("sold.noSold"))}</p>
               <Link href="/properties" className="inline-flex items-center gap-2 mt-6 text-[#86C0C7] font-medium tracking-wider uppercase text-sm">
-                {t("sold.viewCurrent")}
+                {String(t("sold.viewCurrent"))}
                 <ArrowRight size={14} />
               </Link>
             </div>

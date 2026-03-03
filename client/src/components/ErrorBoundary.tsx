@@ -21,8 +21,17 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  componentDidCatch(error: Error, info: { componentStack: string }) {
+    console.error("[ErrorBoundary] Caught error:", error?.message);
+    console.error("[ErrorBoundary] Component stack:", info?.componentStack);
+    if (error?.stack) console.error("[ErrorBoundary] Stack:", error.stack);
+  }
+
   render() {
     if (this.state.hasError) {
+      const isMaxUpdateDepth =
+        this.state.error?.message?.includes("Maximum update depth") ||
+        this.state.error?.message?.includes("185");
       return (
         <div className="flex items-center justify-center min-h-screen p-8 bg-background">
           <div className="flex flex-col items-center w-full max-w-2xl p-8">
@@ -33,11 +42,24 @@ class ErrorBoundary extends Component<Props, State> {
 
             <h2 className="text-xl mb-4">An unexpected error occurred.</h2>
 
-            <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
-              <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
-              </pre>
-            </div>
+            <p className="text-sm text-muted-foreground mb-4 text-center">
+              {isMaxUpdateDepth
+                ? "A display error occurred. Please refresh the page. Check console for [ErrorBoundary] details."
+                : this.state.error?.message}
+            </p>
+            {isMaxUpdateDepth && (
+              <p className="text-xs text-muted-foreground mb-2 font-mono break-all">
+                {String(this.state.error?.message ?? "")}
+              </p>
+            )}
+
+            {!isMaxUpdateDepth && this.state.error?.stack && (
+              <div className="p-4 w-full rounded bg-muted overflow-auto mb-6 max-h-40">
+                <pre className="text-xs text-muted-foreground whitespace-break-spaces">
+                  {this.state.error.stack}
+                </pre>
+              </div>
+            )}
 
             <button
               onClick={() => window.location.reload()}

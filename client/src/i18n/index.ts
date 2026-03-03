@@ -11,6 +11,7 @@ i18n
     resources: { en: { translation: en }, fr: { translation: fr } },
     fallbackLng: "en",
     interpolation: { escapeValue: false },
+    returnObjects: false,
     detection: {
       order: ["localStorage", "navigator"],
       lookupLocalStorage: "nexrel-lang",

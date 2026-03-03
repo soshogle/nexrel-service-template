@@ -48,7 +48,7 @@ export function PageContextProvider({ children }: { children: ReactNode }) {
   const [visibleListings, setVisibleListings] = useState<ListingSummary[]>([]);
   const [selectedListing, setSelectedListing] = useState<ListingSummary | null>(null);
   const [searchAddress, setSearchAddress] = useState<string | null>(null);
-  const [navigateFn, setNavigateFn] = useState<(path: string) => void>(() => (p: string) => { window.location.href = p; });
+  const navigateRef = useRef<(path: string) => void>((p: string) => { window.location.href = p; });
 
   const setPageContext = useCallback((ctx: Partial<PageContextValue>) => {
     if (ctx.path !== undefined) setPath(ctx.path);
@@ -67,7 +67,11 @@ export function PageContextProvider({ children }: { children: ReactNode }) {
 
 
   const setNavigate = useCallback((fn: (path: string) => void) => {
-    setNavigateFn(() => fn);
+    navigateRef.current = fn;
+  }, []);
+
+  const navigate = useCallback((p: string) => {
+    navigateRef.current(p);
   }, []);
 
   const value = useMemo<PageContextValue>(
@@ -79,15 +83,15 @@ export function PageContextProvider({ children }: { children: ReactNode }) {
       searchAddress,
       setPageContext,
       registerContextUpdater,
-      navigate: navigateFn,
+      navigate,
       setNavigate,
     }),
-    [path, pageType, visibleListings, selectedListing, searchAddress, setPageContext, registerContextUpdater, navigateFn, setNavigate]
+    [path, pageType, visibleListings, selectedListing, searchAddress, setPageContext, registerContextUpdater, navigate, setNavigate]
   );
 
   useEffect(() => {
-    updaterRef.current?.({ path, pageType, visibleListings, selectedListing, searchAddress, setPageContext, registerContextUpdater, navigate: navigateFn, setNavigate });
-  }, [path, pageType, visibleListings, selectedListing, searchAddress]);
+    updaterRef.current?.({ path, pageType, visibleListings, selectedListing, searchAddress, setPageContext, registerContextUpdater, navigate, setNavigate });
+  }, [path, pageType, visibleListings, selectedListing, searchAddress, setPageContext, registerContextUpdater, navigate, setNavigate]);
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;
 }

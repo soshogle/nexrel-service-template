@@ -11,7 +11,11 @@
     "newsMedia": "Nouvelles",
     "getAQuote": "Soumission",
     "callNow": "Appelez",
-    "secretProperties": "Propriétés secrètes"
+    "secretProperties": "Propriétés secrètes",
+    "prestige": "Propriétés de prestige",
+    "soldProperties": "Propriétés vendues",
+    "propertyConcierge": "Concierge immobilier",
+    "marketAppraisal": "Évaluation du marché"
   },
   "common": {
     "viewProperties": "Voir les propriétés",

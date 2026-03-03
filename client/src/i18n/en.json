@@ -11,7 +11,11 @@
     "newsMedia": "News & Media",
     "getAQuote": "Get A Quote",
     "callNow": "Call Now",
-    "secretProperties": "Secret Properties"
+    "secretProperties": "Secret Properties",
+    "prestige": "Prestige Properties",
+    "soldProperties": "Sold Properties",
+    "propertyConcierge": "Property Concierge",
+    "marketAppraisal": "Market Appraisal"
   },
   "common": {
     "viewProperties": "View Properties",

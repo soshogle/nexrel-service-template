@@ -149,7 +149,7 @@ function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number
           {t("propertyDetail.inquirySentDesc")}
         </p>
         <Button variant="outline" onClick={() => setSubmitted(false)} className="border-[#86C0C7] text-[#86C0C7] hover:bg-[#86C0C7]/10">
-          {t("propertyDetail.sendAnother")}
+          {String(t("propertyDetail.sendAnother"))}
         </Button>
       </div>
     );
@@ -209,7 +209,7 @@ function PropertyInquiryForm({ propertyId, propertyTitle }: { propertyId: number
           disabled={submitInquiry.isPending}
           className="w-full bg-[#86C0C7] hover:bg-[#6AABB3] text-white tracking-wider uppercase text-sm py-3 h-auto rounded-sm"
         >
-          {submitInquiry.isPending ? t("common.sending") : <><Send size={14} className="mr-2" />{t("common.sendInquiry")}</>}
+          {submitInquiry.isPending ? String(t("common.sending")) : <><Send size={14} className="mr-2" />{String(t("common.sendInquiry"))}</>}
         </Button>
       </form>
     </div>
@@ -252,7 +252,17 @@ export default function PropertyDetail() {
   const [location] = useLocation();
   const pageCtx = usePageContextOptional();
 
-  const { data: property, isLoading } = trpc.properties.getBySlug.useQuery({ slug });
+  const safeStr = (v: unknown, fallback = ""): string => {
+    if (v == null) return fallback;
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    return fallback;
+  };
+
+  const { data: property, isLoading, isError } = trpc.properties.getBySlug.useQuery(
+    { slug },
+    { retry: false, refetchOnWindowFocus: false }
+  );
 
   useEffect(() => {
     if (!pageCtx || !property) return;
@@ -265,9 +275,10 @@ export default function PropertyDetail() {
     pageCtx.setPageContext({ path: location, pageType: "property", visibleListings: [], selectedListing: summary });
   }, [pageCtx, location, property]);
 
-  const formatPrice = (price: string, label?: string | null) => {
-    const num = parseFloat(price);
-    return `$${num.toLocaleString()}${label ? `/${label}` : ""}`;
+  const formatPrice = (price: unknown, label?: unknown) => {
+    const num = parseFloat(safeStr(price, "0"));
+    const l = safeStr(label);
+    return `$${num.toLocaleString()}${l ? `/${l}` : ""}`;
   };
 
   if (isLoading) {
@@ -291,13 +302,13 @@ export default function PropertyDetail() {
     );
   }
 
-  if (!property) {
+  if (isError || !property) {
     return (
       <div className="pt-20 min-h-screen bg-[#f8f6f3] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="font-serif text-2xl text-[#214359] mb-4">{t("propertyDetail.propertyNotFound")}</h2>
+          <h2 className="font-serif text-2xl text-[#214359] mb-4">{String(t("propertyDetail.propertyNotFound"))}</h2>
           <Link href="/properties" className="text-[#86C0C7] hover:underline">
-            ← {t("common.backToProperties")}
+            ← {String(t("common.backToProperties"))}
           </Link>
         </div>
       </div>
@@ -341,44 +352,44 @@ export default function PropertyDetail() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="bg-[#86C0C7] text-white text-xs font-medium tracking-wider uppercase px-3 py-1 rounded-sm">
-                      {property.listingType === "sale" ? t("common.forSale") : t("common.forRent")}
+                      {property.listingType === "sale" ? String(t("common.forSale")) : String(t("common.forRent"))}
                     </span>
                     <span className="bg-[#214359]/10 text-[#214359] text-xs font-medium tracking-wider uppercase px-3 py-1 rounded-sm">
-                      {property.propertyType}
+                      {safeStr(property.propertyType, "Property")}
                     </span>
                   </div>
-                  <h1 className="font-serif text-[#214359] text-2xl sm:text-3xl">{property.title}</h1>
+                  <h1 className="font-serif text-[#214359] text-2xl sm:text-3xl">{safeStr(property.title, "Property")}</h1>
                   <div className="flex items-center gap-2 text-muted-foreground mt-2">
                     <MapPin size={16} />
-                    <span>{property.address}, {property.city}, {property.province} {property.postalCode}</span>
+                    <span>{safeStr(property.address)}{safeStr(property.city) ? `, ${safeStr(property.city)}` : ""}{safeStr(property.province) ? `, ${safeStr(property.province)}` : ""} {safeStr(property.postalCode)}</span>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-serif text-[#214359] text-3xl font-bold">
-                    {formatPrice(property.price, property.priceLabel)}
+                    {formatPrice(safeStr(property.price, "0"), property.priceLabel)}
                   </p>
                   {property.mlsNumber && (
-                    <p className="text-xs text-muted-foreground mt-1">MLS# {property.mlsNumber}</p>
+                    <p className="text-xs text-muted-foreground mt-1">MLS# {safeStr(property.mlsNumber)}</p>
                   )}
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-6 mt-6 pt-6 border-t border-border">
-                {property.bedrooms && (
+                {property.bedrooms != null && Number(property.bedrooms) > 0 && (
                   <div className="flex items-center gap-2">
                     <BedDouble size={20} className="text-[#86C0C7]" />
                     <div>
-                      <p className="font-medium text-[#214359]">{property.bedrooms}</p>
-                      <p className="text-xs text-muted-foreground">{t("common.bedrooms")}</p>
+                      <p className="font-medium text-[#214359]">{String(property.bedrooms)}</p>
+                      <p className="text-xs text-muted-foreground">{String(t("common.bedrooms"))}</p>
                     </div>
                   </div>
                 )}
-                {property.bathrooms && (
+                {property.bathrooms != null && Number(property.bathrooms) > 0 && (
                   <div className="flex items-center gap-2">
                     <Bath size={20} className="text-[#86C0C7]" />
                     <div>
-                      <p className="font-medium text-[#214359]">{property.bathrooms}</p>
-                      <p className="text-xs text-muted-foreground">{t("common.bathrooms")}</p>
+                      <p className="font-medium text-[#214359]">{String(property.bathrooms)}</p>
+                      <p className="text-xs text-muted-foreground">{String(t("common.bathrooms"))}</p>
                     </div>
                   </div>
                 )}
@@ -386,8 +397,8 @@ export default function PropertyDetail() {
                   <div className="flex items-center gap-2">
                     <Ruler size={20} className="text-[#86C0C7]" />
                     <div>
-                      <p className="font-medium text-[#214359]">{property.area} {property.areaUnit || "ft²"}</p>
-                      <p className="text-xs text-muted-foreground">{t("common.livingArea")}</p>
+                      <p className="font-medium text-[#214359]">{safeStr(property.area)} {safeStr(property.areaUnit, "ft²")}</p>
+                      <p className="text-xs text-muted-foreground">{String(t("common.livingArea"))}</p>
                     </div>
                   </div>
                 )}
@@ -403,20 +414,20 @@ export default function PropertyDetail() {
                   }}
                 >
                   <Share2 size={14} className="mr-2" />
-                  {t("common.share")}
+                  {String(t("common.share"))}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => toast(t("common.featureComingSoon"))}>
+                <Button variant="outline" size="sm" onClick={() => toast(String(t("common.featureComingSoon")))}>
                   <Heart size={14} className="mr-2" />
-                  {t("common.save")}
+                  {String(t("common.save"))}
                 </Button>
               </div>
             </div>
 
             {property.description && (
               <div className="bg-white rounded-sm p-8 shadow-sm">
-                <h2 className="font-serif text-[#214359] text-xl mb-4">{t("propertyDetail.description")}</h2>
+                <h2 className="font-serif text-[#214359] text-xl mb-4">{String(t("propertyDetail.description"))}</h2>
                 <div className="text-[#214359]/70 leading-relaxed whitespace-pre-line">
-                  {property.description}
+                  {safeStr(property.description)}
                 </div>
               </div>
             )}
@@ -437,10 +448,10 @@ export default function PropertyDetail() {
                     <tbody>
                       {(property.roomDetails as { name: string; level: string; dimensions: string; flooring?: string }[]).map((room, i) => (
                         <tr key={i} className="border-b border-border/50">
-                          <td className="py-3 px-4 text-[#214359]/80">{room.name}</td>
-                          <td className="py-3 px-4 text-[#214359]/80">{room.level}</td>
-                          <td className="py-3 px-4 text-[#214359]/80">{room.dimensions}</td>
-                          <td className="py-3 px-4 text-[#214359]/80">{room.flooring || "—"}</td>
+                          <td className="py-3 px-4 text-[#214359]/80">{safeStr(room.name)}</td>
+                          <td className="py-3 px-4 text-[#214359]/80">{safeStr(room.level)}</td>
+                          <td className="py-3 px-4 text-[#214359]/80">{safeStr(room.dimensions)}</td>
+                          <td className="py-3 px-4 text-[#214359]/80">{safeStr(room.flooring, "—")}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -459,8 +470,8 @@ export default function PropertyDetail() {
                       <ul className="space-y-2">
                         {(features.rooms as { name: string; dimensions?: string }[]).map((room: any, i: number) => (
                           <li key={i} className="text-sm text-[#214359]/70 flex justify-between">
-                            <span>{room.name}</span>
-                            {room.dimensions && <span className="text-muted-foreground">{room.dimensions}</span>}
+                            <span>{safeStr(room.name)}</span>
+                            {room.dimensions && <span className="text-muted-foreground">{safeStr(room.dimensions)}</span>}
                           </li>
                         ))}
                       </ul>
@@ -473,7 +484,7 @@ export default function PropertyDetail() {
                         {features.amenities.map((amenity: string, i: number) => (
                           <li key={i} className="text-sm text-[#214359]/70 flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-[#86C0C7] rounded-full" />
-                            {amenity}
+                            {safeStr(amenity)}
                           </li>
                         ))}
                       </ul>
@@ -486,7 +497,7 @@ export default function PropertyDetail() {
                         {features.inclusions.map((item: string, i: number) => (
                           <li key={i} className="text-sm text-[#214359]/70 flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-[#86C0C7] rounded-full" />
-                            {item}
+                            {safeStr(item)}
                           </li>
                         ))}
                       </ul>
@@ -536,13 +547,13 @@ export default function PropertyDetail() {
                   className="flex items-center justify-center gap-2 w-full py-3 border border-[#214359] text-[#214359] font-medium text-sm tracking-wider uppercase rounded-sm hover:bg-[#214359] hover:text-white transition-all"
                 >
                   <Mail size={16} />
-                  {t("common.emailMe")}
+                  {String(t("common.emailMe"))}
                 </a>
                 <Link
                   href="/contact"
                   className="flex items-center justify-center gap-2 w-full py-3 border border-border text-muted-foreground font-medium text-sm tracking-wider uppercase rounded-sm hover:bg-muted transition-colors"
                 >
-                  {t("common.sendInquiry")}
+                  {String(t("common.sendInquiry"))}
                 </Link>
               </div>
 
@@ -553,7 +564,7 @@ export default function PropertyDetail() {
                   rel="noopener noreferrer"
                   className="text-sm text-[#86C0C7] hover:underline"
                 >
-                  {t("common.viewRemaxProfile")} →
+                  {String(t("common.viewRemaxProfile"))} →
                 </a>
               </div>
             </div>

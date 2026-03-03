@@ -319,24 +319,9 @@ function TranquilliTSection() {
 function ServicesSection() {
   const { t } = useTranslation();
   const services = [
-    {
-      icon: HomeIcon,
-      title: t("home.buyingTitle"),
-      description: t("home.buyingDesc"),
-      link: "/properties?listingType=sale",
-    },
-    {
-      icon: Key,
-      title: t("home.rentingTitle"),
-      description: t("home.rentingDesc"),
-      link: "/properties?listingType=rent",
-    },
-    {
-      icon: TrendingUp,
-      title: t("home.sellingTitle"),
-      description: t("home.sellingDesc"),
-      link: "/contact",
-    },
+    { icon: HomeIcon, title: String(t("home.buyingTitle")), description: String(t("home.buyingDesc")), link: "/properties?listingType=sale" },
+    { icon: Key, title: String(t("home.rentingTitle")), description: String(t("home.rentingDesc")), link: "/properties?listingType=rent" },
+    { icon: TrendingUp, title: String(t("home.sellingTitle")), description: String(t("home.sellingDesc")), link: "/contact" },
   ];
   return (
     <section className="py-24 bg-[#1B3A4B]">
@@ -353,15 +338,15 @@ function ServicesSection() {
               <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-[#86C0C7]/20 flex items-center justify-center">
                 <s.icon className="w-7 h-7 text-[#86C0C7]" />
               </div>
-              <h3 className="font-serif text-white text-xl mb-4">{s.title}</h3>
+              <h3 className="font-serif text-white text-xl mb-4">{String(s.title)}</h3>
               <p className="text-white/70 text-base leading-relaxed mb-6">
-                {s.description}
+                {String(s.description)}
               </p>
               <Link
                 href={s.link}
                 className="inline-flex items-center gap-2 text-[#86C0C7] font-medium tracking-wider uppercase text-sm hover:gap-3 transition-all duration-300"
               >
-                {t("common.learnMore")}
+                {String(t("common.learnMore"))}
                 <ArrowRight size={14} />
               </Link>
             </div>
@@ -375,8 +360,8 @@ function ServicesSection() {
 function TestimonialsSection() {
   const { t } = useTranslation();
   const testimonials = [
-    { quote: t("home.testimonial1"), author: "Marie & Jean" },
-    { quote: t("home.testimonial2"), author: "Alex K." },
+    { quote: String(t("home.testimonial1")), author: "Marie & Jean" },
+    { quote: String(t("home.testimonial2")), author: "Alex K." },
   ];
   return (
     <section className="py-24 bg-white">
@@ -395,9 +380,9 @@ function TestimonialsSection() {
             >
               <Quote className="w-10 h-10 text-[#86C0C7]/50 mb-4" />
               <p className="font-serif text-[#214359] text-lg italic mb-6">
-                "{testimonial.quote}"
+                "{String(testimonial.quote)}"
               </p>
-              <p className="text-[#214359]/70 text-sm">— {testimonial.author}</p>
+              <p className="text-[#214359]/70 text-sm">— {String(testimonial.author)}</p>
             </div>
           ))}
         </div>

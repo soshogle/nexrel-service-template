@@ -53,6 +53,7 @@ export function Router() {
         <Route path="/sold" component={Sold} />
         <Route path="/property-concierge" component={PropertyConcierge} />
         <Route path="/market-appraisal" component={MarketAppraisal} />
+        <Route path="/property-evaluation" component={MarketAppraisal} />
         <Route path="/buying" component={Buying} />
         <Route path="/for-sale" component={ForSale} />
         <Route path="/prestige" component={Prestige} />

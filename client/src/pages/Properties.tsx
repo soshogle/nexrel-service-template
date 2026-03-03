@@ -12,53 +12,62 @@ import { useTranslation } from "react-i18next";
 
 function PropertyCard({ property }: { property: any }) {
   const { t } = useTranslation();
-  const formatPrice = (price: string, label?: string | null) => {
-    const num = parseFloat(price);
-    return `$${num.toLocaleString()}${label ? `/${label}` : ""}`;
+  const formatPrice = (price: unknown, label?: unknown) => {
+    const num = parseFloat(safeStr(price, "0"));
+    const l = safeStr(label);
+    return `$${num.toLocaleString()}${l ? `/${l}` : ""}`;
+  };
+
+  const safeStr = (v: unknown, fallback = ""): string => {
+    if (v == null) return fallback;
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    return fallback;
   };
 
   return (
-    <Link href={`/property/${property.slug}`} className="group property-card block">
-      <div className="relative overflow-hidden rounded-sm aspect-[4/3]">
+    <Link href={`/property/${safeStr(property.slug, String(property.id))}`} className="group property-card block bg-white rounded-sm overflow-hidden shadow-sm hover:shadow-lg transition-shadow">
+      <div className="relative overflow-hidden aspect-[4/3]">
         <img
-          src={property.mainImageUrl || "/placeholder.jpg"}
-          alt={property.title}
+          src={safeStr(property.mainImageUrl, "/placeholder.jpg")}
+          alt={safeStr(property.title, "Property")}
           className="listing-img-zoom w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute top-4 left-4 bg-[#214359]/90 backdrop-blur-sm px-4 py-2 rounded-sm">
-          <p className="text-white font-medium text-lg">
-            {formatPrice(property.price, property.priceLabel)}
-          </p>
-        </div>
         <div className="absolute top-4 right-4 bg-[#86C0C7] px-3 py-1 rounded-sm">
           <p className="text-white text-xs font-medium tracking-wider uppercase">
-            {property.listingType === "sale" ? t("common.forSale") : t("common.forRent")}
+            {property.listingType === "sale" ? String(t("common.forSale")) : String(t("common.forRent"))}
           </p>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h3 className="font-serif text-white text-xl mb-2 group-hover:text-[#86C0C7] transition-colors">
-            {property.title}
+      </div>
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-serif text-[#214359] text-lg group-hover:text-[#86C0C7] transition-colors line-clamp-1">
+            {safeStr(property.title, "Listing")}
           </h3>
-          <div className="flex items-center gap-2 text-white/70 text-sm">
-            <MapPin size={14} />
-            <span>{property.address}, {property.city}</span>
-          </div>
-          <div className="flex items-center gap-4 mt-3 text-white/70 text-sm">
-            {property.bedrooms && (
-              <span className="flex items-center gap-1">
-                <BedDouble size={14} /> {property.bedrooms} {t("common.beds")}
-              </span>
-            )}
-            {property.bathrooms && (
-              <span className="flex items-center gap-1">
-                <Bath size={14} /> {property.bathrooms} {t("common.bath")}
-              </span>
-            )}
-            {property.area && (
-              <span>{property.area} {property.areaUnit || "ft²"}</span>
-            )}
-          </div>
+          <p className="text-[#214359] font-semibold text-lg shrink-0 ml-3">
+            {formatPrice(safeStr(property.price, "0"), property.priceLabel)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
+          <MapPin size={14} className="shrink-0" />
+          <span className="line-clamp-1">
+            {safeStr(property.address)}{safeStr(property.city) ? `, ${safeStr(property.city)}` : ""}
+          </span>
+        </div>
+        <div className="flex items-center gap-4 text-muted-foreground text-sm border-t border-border pt-3">
+          {property.bedrooms != null && Number(property.bedrooms) > 0 && (
+            <span className="flex items-center gap-1">
+              <BedDouble size={14} /> {String(property.bedrooms)} {String(t("common.beds"))}
+            </span>
+          )}
+          {property.bathrooms != null && Number(property.bathrooms) > 0 && (
+            <span className="flex items-center gap-1">
+              <Bath size={14} /> {String(property.bathrooms)} {String(t("common.bath"))}
+            </span>
+          )}
+          {property.area && (
+            <span>{safeStr(property.area)} {safeStr(property.areaUnit, "ft²")}</span>
+          )}
         </div>
       </div>
     </Link>
@@ -122,7 +131,7 @@ function PropertyMapView({ properties }: { properties: any[] }) {
   return (
     <div className="space-y-4">
       <h2 className="font-serif text-2xl sm:text-3xl text-[#214359] text-center">
-        {t("properties.findDreamHome")}
+        {String(t("properties.findDreamHome"))}
       </h2>
       <AddressSearchBar
         onAddressSelect={(address, lat, lng) => {
@@ -142,7 +151,7 @@ function PropertyMapView({ properties }: { properties: any[] }) {
         />
         {propertiesWithCoords.length === 0 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 px-4 py-2 rounded shadow text-sm text-muted-foreground text-center max-w-md">
-            {t("properties.noLocationData")}
+            {String(t("properties.noLocationData"))}
           </div>
         )}
       </div>
@@ -190,7 +199,7 @@ function AddressSearchBar({ onAddressSelect }: { onAddressSelect: (address: stri
       <Input
         ref={inputRef}
         type="text"
-        placeholder={ready ? t("properties.addressSearchReady") : t("properties.loadingMap")}
+        placeholder={ready ? String(t("properties.addressSearchReady")) : String(t("properties.loadingMap"))}
         className="pl-12 h-12 rounded-sm border-[#214359]/20 focus:border-[#86C0C7]"
         autoComplete="off"
       />
@@ -222,7 +231,8 @@ function parseSearchParams(search: string) {
 export default function Properties({ defaultListingType, defaultPropertyType, prestige, pageLabelKey, pageLabel = "Properties" }: PropertiesProps = {}) {
   const { t } = useTranslation();
   const config = useAgencyConfig();
-  const resolvedLabel = pageLabelKey ? (config.pageLabels[pageLabelKey] ?? pageLabel) : pageLabel;
+  const rawLabel = pageLabelKey ? (config.pageLabels[pageLabelKey] ?? pageLabel) : pageLabel;
+  const resolvedLabel = typeof rawLabel === "string" ? rawLabel : String(rawLabel);
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -298,7 +308,7 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
       <section className="bg-[#214359] py-20">
         <div className="container text-center">
           <p className="text-[#86C0C7] text-sm font-medium tracking-[0.3em] uppercase mb-4">
-            {t("properties.browseListings")}
+            {String(t("properties.browseListings"))}
           </p>
           <h1 className="font-serif text-white text-4xl sm:text-5xl">{resolvedLabel}</h1>
           <div className="w-16 h-0.5 bg-[#86C0C7] mx-auto mt-6" />
@@ -311,7 +321,7 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
-              placeholder={t("properties.searchPlaceholder")}
+              placeholder={String(t("properties.searchPlaceholder"))}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-12 h-12 rounded-sm border-[#214359]/20 focus:border-[#86C0C7]"
@@ -330,23 +340,23 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
               className={filtersOpen ? "bg-[#214359] text-white border-[#214359]" : ""}
             >
               <SlidersHorizontal size={16} className="mr-2" />
-              {t("properties.filters")}
+              {String(t("properties.filters"))}
             </Button>
             <span className="text-sm text-muted-foreground">
-              {sortedProperties.length} {sortedProperties.length === 1 ? t("common.property") : t("common.properties")}
+              {sortedProperties.length} {sortedProperties.length === 1 ? String(t("common.property")) : String(t("common.properties"))}
             </span>
           </div>
 
           <div className="flex items-center gap-3">
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[160px] h-9 text-sm">
-                <SelectValue placeholder={t("properties.sortBy")} />
+                <SelectValue placeholder={String(t("properties.sortBy"))} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">{t("properties.newest")}</SelectItem>
-                <SelectItem value="price_asc">{t("properties.priceLowHigh")}</SelectItem>
-                <SelectItem value="price_desc">{t("properties.priceHighLow")}</SelectItem>
-                <SelectItem value="oldest">{t("properties.oldest")}</SelectItem>
+                <SelectItem value="newest">{String(t("properties.newest"))}</SelectItem>
+                <SelectItem value="price_asc">{String(t("properties.priceLowHigh"))}</SelectItem>
+                <SelectItem value="price_desc">{String(t("properties.priceHighLow"))}</SelectItem>
+                <SelectItem value="oldest">{String(t("properties.oldest"))}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -372,64 +382,64 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
             <div className="flex flex-wrap items-center gap-4">
               <Select value={listingType} onValueChange={setListingType}>
                 <SelectTrigger className="w-[140px] h-9 text-sm">
-                  <SelectValue placeholder={t("properties.listingType")} />
+                  <SelectValue placeholder={String(t("properties.listingType"))} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("properties.allTypes")}</SelectItem>
-                  <SelectItem value="rent">{t("common.forRent")}</SelectItem>
-                  <SelectItem value="sale">{t("common.forSale")}</SelectItem>
+                  <SelectItem value="all">{String(t("properties.allTypes"))}</SelectItem>
+                  <SelectItem value="rent">{String(t("common.forRent"))}</SelectItem>
+                  <SelectItem value="sale">{String(t("common.forSale"))}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={propertyType} onValueChange={setPropertyType}>
                 <SelectTrigger className="w-[160px] h-9 text-sm">
-                  <SelectValue placeholder={t("properties.propertyType")} />
+                  <SelectValue placeholder={String(t("properties.propertyType"))} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("properties.allProperties")}</SelectItem>
-                  <SelectItem value="condo">{t("properties.condo")}</SelectItem>
-                  <SelectItem value="house">{t("properties.house")}</SelectItem>
-                  <SelectItem value="townhouse">{t("properties.townhouse")}</SelectItem>
-                  <SelectItem value="apartment">{t("properties.apartment")}</SelectItem>
+                  <SelectItem value="all">{String(t("properties.allProperties"))}</SelectItem>
+                  <SelectItem value="condo">{String(t("properties.condo"))}</SelectItem>
+                  <SelectItem value="house">{String(t("properties.house"))}</SelectItem>
+                  <SelectItem value="townhouse">{String(t("properties.townhouse"))}</SelectItem>
+                  <SelectItem value="apartment">{String(t("properties.apartment"))}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={bedrooms} onValueChange={setBedrooms}>
                 <SelectTrigger className="w-[140px] h-9 text-sm">
-                  <SelectValue placeholder={t("common.bedrooms")} />
+                  <SelectValue placeholder={String(t("common.bedrooms"))} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("properties.anyBeds")}</SelectItem>
-                  <SelectItem value="1">1+ {t("common.bed")}</SelectItem>
-                  <SelectItem value="2">2+ {t("common.beds")}</SelectItem>
-                  <SelectItem value="3">3+ {t("common.beds")}</SelectItem>
-                  <SelectItem value="4">4+ {t("common.beds")}</SelectItem>
+                  <SelectItem value="all">{String(t("properties.anyBeds"))}</SelectItem>
+                  <SelectItem value="1">1+ {String(t("common.bed"))}</SelectItem>
+                  <SelectItem value="2">2+ {String(t("common.beds"))}</SelectItem>
+                  <SelectItem value="3">3+ {String(t("common.beds"))}</SelectItem>
+                  <SelectItem value="4">4+ {String(t("common.beds"))}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={bathrooms} onValueChange={setBathrooms}>
                 <SelectTrigger className="w-[140px] h-9 text-sm">
-                  <SelectValue placeholder={t("common.bathrooms")} />
+                  <SelectValue placeholder={String(t("common.bathrooms"))} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("properties.anyBaths")}</SelectItem>
-                  <SelectItem value="1">1+ {t("common.bath")}</SelectItem>
-                  <SelectItem value="2">2+ {t("common.baths")}</SelectItem>
-                  <SelectItem value="3">3+ {t("common.baths")}</SelectItem>
-                  <SelectItem value="4">4+ {t("common.baths")}</SelectItem>
+                  <SelectItem value="all">{String(t("properties.anyBaths"))}</SelectItem>
+                  <SelectItem value="1">1+ {String(t("common.bath"))}</SelectItem>
+                  <SelectItem value="2">2+ {String(t("common.baths"))}</SelectItem>
+                  <SelectItem value="3">3+ {String(t("common.baths"))}</SelectItem>
+                  <SelectItem value="4">4+ {String(t("common.baths"))}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Input
                 type="number"
-                placeholder={t("properties.minPrice")}
+                placeholder={String(t("properties.minPrice"))}
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 className="w-[120px] h-9 text-sm"
               />
               <Input
                 type="number"
-                placeholder={t("properties.maxPrice")}
+                placeholder={String(t("properties.maxPrice"))}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
                 className="w-[120px] h-9 text-sm"
@@ -437,7 +447,7 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
 
               <Button variant="ghost" size="sm" onClick={resetFilters} className="text-sm text-muted-foreground">
                 <X size={14} className="mr-1" />
-                {t("common.clearFilters")}
+                {String(t("common.clearFilters"))}
               </Button>
             </div>
           </div>
@@ -470,12 +480,12 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
             <div className="text-center py-20">
               <p className="text-muted-foreground text-lg">
                 {searchDebounced || propertyType !== "all" || listingType !== "all" || bedrooms !== "all" || bathrooms !== "all" || minPrice || maxPrice
-                  ? t("properties.noMatchFilters")
-                  : t("properties.noListingsYet")}
+                  ? String(t("properties.noMatchFilters"))
+                  : String(t("properties.noListingsYet"))}
               </p>
               <div className="flex flex-wrap justify-center gap-4 mt-6">
                 <Button variant="outline" onClick={resetFilters}>
-                  {t("common.clearFilters")}
+                  {String(t("common.clearFilters"))}
                 </Button>
                 {config?.remaxProfileUrl && (
                   <a
@@ -484,7 +494,7 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-2 border border-[#214359]/30 text-[#214359] font-medium rounded-sm hover:bg-[#214359] hover:text-white transition-colors"
                   >
-                    {t("common.viewOnRemax")}
+                    {String(t("common.viewOnRemax"))}
                   </a>
                 )}
               </div>
