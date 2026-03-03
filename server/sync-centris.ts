@@ -94,6 +94,8 @@ function mapApifyItemToProperty(item: Record<string, unknown>): Record<string, u
     gallery_images: item.image ? [item.image] : [],
     room_details: null,
     is_featured: false,
+    is_secret: true,
+    is_new: true,
     original_url: item.url || `https://www.centris.ca/en/property/${mls}`,
   };
 }
@@ -122,9 +124,9 @@ export async function runSyncCentris(maxPerUrl = 25): Promise<{ imported: number
   const cols = [
     "mls_number", "title", "slug", "property_type", "listing_type", "status", "price", "price_label",
     "address", "neighborhood", "city", "province", "bedrooms", "bathrooms", "area", "area_unit",
-    "description", "main_image_url", "gallery_images", "is_featured", "room_details", "original_url",
+    "description", "main_image_url", "gallery_images", "is_featured", "is_secret", "is_new", "room_details", "original_url",
   ];
-  const updateCols = cols.filter((c) => c !== "mls_number");
+  const updateCols = cols.filter((c) => c !== "mls_number" && c !== "is_secret" && c !== "is_new");
   const updateSet = updateCols.map((c) => `${c} = EXCLUDED.${c}`).join(", ");
 
   const pgClient = new pg.Client({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: true } });
@@ -153,6 +155,8 @@ export async function runSyncCentris(maxPerUrl = 25): Promise<{ imported: number
       p!.main_image_url,
       JSON.stringify(p!.gallery_images),
       p!.is_featured,
+      p!.is_secret,
+      p!.is_new,
       p!.room_details ? JSON.stringify(p!.room_details) : null,
       p!.original_url,
     ];
@@ -164,6 +168,14 @@ export async function runSyncCentris(maxPerUrl = 25): Promise<{ imported: number
     );
     count++;
   }
+
+  // Auto-expire: listings older than 7 days lose secret + new status
+  await pgClient.query(
+    `UPDATE properties
+     SET is_secret = false, is_new = false
+     WHERE (is_secret = true OR is_new = true)
+       AND created_at < NOW() - INTERVAL '7 days'`
+  );
 
   await pgClient.end();
   return { imported: count };
