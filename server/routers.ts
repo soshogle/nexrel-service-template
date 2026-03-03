@@ -95,15 +95,19 @@ export const appRouter = router({
 
   // ─── Agency Config (from CRM or defaults) ─────────────────────
   agencyConfig: router({
-    get: publicProcedure.query(async () => {
-      const crmUrl = process.env.NEXREL_CRM_URL;
-      const websiteId = process.env.NEXREL_WEBSITE_ID;
-      const secret = process.env.WEBSITE_VOICE_CONFIG_SECRET;
-      if (crmUrl && websiteId) {
-        try {
-          const res = await fetch(`${crmUrl.replace(/\/$/, "")}/api/websites/${websiteId}/agency-config`, {
-            headers: secret ? { "x-website-secret": secret } : {},
-          });
+    get: publicProcedure
+      .input(z.object({ previewToken: z.string().optional() }).optional())
+      .query(async (opts) => {
+        const previewToken = opts.input?.previewToken;
+        const crmUrl = process.env.NEXREL_CRM_URL;
+        const websiteId = process.env.NEXREL_WEBSITE_ID;
+        const secret = process.env.WEBSITE_VOICE_CONFIG_SECRET;
+        if (crmUrl && websiteId) {
+          try {
+            const url = `${crmUrl.replace(/\/$/, "")}/api/websites/${websiteId}/agency-config${previewToken ? `?previewToken=${encodeURIComponent(previewToken)}` : ""}`;
+            const res = await fetch(url, {
+              headers: secret ? { "x-website-secret": secret } : {},
+            });
           if (res.ok) {
             const data = (await res.json()) as Record<string, unknown>;
             const nav = data.navConfig as Record<string, unknown> | undefined;
@@ -246,6 +250,7 @@ export const appRouter = router({
           email: z.string().email("Valid email is required"),
           phone: z.string().optional(),
           message: z.string().min(1, "Message is required"),
+          language: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -282,6 +287,7 @@ export const appRouter = router({
                 message: input.message,
                 propertyId: input.propertyId || undefined,
                 propertyAddress,
+                language: input.language || "en",
               }),
             });
           } catch (e) {

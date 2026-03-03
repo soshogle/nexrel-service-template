@@ -9,6 +9,8 @@ import { MapView } from "@/components/Map";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
+const LANG_STORAGE_KEY = "nexrel-lang";
+
 function ContactMap() {
   const handleMapReady = (map: google.maps.Map) => {
     const position = { lat: 45.5310, lng: -73.6535 };
@@ -71,15 +73,18 @@ export default function Contact() {
     const propertyId = formData.propertyOfInterest && formData.propertyOfInterest !== "none"
       ? parseInt(formData.propertyOfInterest, 10)
       : undefined;
+    const propLabel = t("contact.propertyOfInterest");
     const messageText = formData.propertyOfInterest && formData.propertyOfInterest !== "none"
-      ? `Property of interest: ${propertyOptions.find((p) => p.id.toString() === formData.propertyOfInterest)?.title || ""}\n\n${formData.message}`
+      ? `${propLabel}: ${propertyOptions.find((p) => p.id.toString() === formData.propertyOfInterest)?.title || ""}\n\n${formData.message}`
       : formData.message;
+    const lang = (typeof window !== "undefined" && localStorage.getItem(LANG_STORAGE_KEY)) || "en";
     submitInquiry.mutate({
       propertyId,
       name: formData.name,
       email: formData.email,
       phone: formData.phone || undefined,
       message: messageText,
+      language: lang,
     });
   };
 

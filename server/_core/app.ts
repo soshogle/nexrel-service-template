@@ -218,6 +218,32 @@ export function createApp() {
     }
   });
 
+  // Secret property buyer registration → proxy to CRM webhook
+  app.post("/api/secret-property-registration", express.json(), async (req, res) => {
+    const crmUrl = process.env.NEXREL_CRM_URL;
+    const websiteId = process.env.NEXREL_WEBSITE_ID;
+    const secret = process.env.WEBSITE_VOICE_CONFIG_SECRET;
+    if (!crmUrl || !websiteId) {
+      res.status(503).json({ error: "CRM not configured" });
+      return;
+    }
+    try {
+      const resp = await fetch(`${crmUrl.replace(/\/$/, "")}/api/webhooks/secret-property-registration`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(secret ? { "x-website-secret": secret } : {}),
+        },
+        body: JSON.stringify({ ...req.body, websiteId }),
+      });
+      const data = await resp.json();
+      res.status(resp.ok ? 200 : resp.status).json(data);
+    } catch (err) {
+      console.error("[secret-property-registration proxy]", err);
+      res.status(502).json({ error: "Failed to register" });
+    }
+  });
+
   // Property evaluation → proxy to CRM (client sends here; server forwards with secret)
   app.post("/api/property-evaluation", express.json(), async (req, res) => {
     const crmUrl = process.env.NEXREL_CRM_URL;

@@ -1,17 +1,30 @@
 /**
  * Provides agency config from CRM (when NEXREL_WEBSITE_ID set) or template defaults.
  * Owner-agnostic: template uses placeholders; each deployment gets owner config from CRM.
+ *
+ * Preview mode: when ?previewToken=xxx is in the URL, fetches draft config for preview-before-publish.
  */
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext, useMemo, useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { DEFAULT_AGENCY_CONFIG, type AgencyConfig } from "@/lib/agency-config";
 
 const AgencyConfigContext = createContext<AgencyConfig>(DEFAULT_AGENCY_CONFIG);
 
 export function AgencyConfigProvider({ children }: { children: React.ReactNode }) {
-  const { data: crmConfig } = trpc.agencyConfig.get.useQuery(undefined, {
-    staleTime: 30 * 1000, // 30 sec — changes appear within 30s; Publish in CRM shows countdown
-  });
+  const [previewToken, setPreviewToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setPreviewToken(params.get("previewToken"));
+  }, []);
+
+  const { data: crmConfig } = trpc.agencyConfig.get.useQuery(
+    previewToken ? { previewToken } : undefined,
+    {
+      staleTime: previewToken ? 0 : 30 * 1000,
+    }
+  );
 
   const config = useMemo((): AgencyConfig => {
     if (crmConfig) {

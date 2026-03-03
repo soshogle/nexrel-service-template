@@ -33,6 +33,8 @@ const HREF_TO_I18N_KEY: Record<string, string> = {
   "/about": "nav.about",
   "/news": "nav.newsMedia",
   "/blog": "nav.blog",
+  "/videos": "nav.videos",
+  "/podcasts": "nav.podcasts",
   "/get-a-quote": "nav.getAQuote",
   "/contact": "nav.contact",
   "/secret-properties": "nav.secretProperties",
@@ -48,15 +50,17 @@ function resolveNavLabel(
   pageLabels: Record<string, string> | null | undefined,
   t: (key: string) => string
 ): string {
-  const pageLabelKey = HREF_TO_PAGE_LABEL[href];
-  if (pageLabelKey && pageLabels?.[pageLabelKey]) {
-    const val = pageLabels[pageLabelKey];
-    if (typeof val === "string") return val;
-  }
+  // Prefer i18n for standard nav items so language switcher works (French, etc.)
   const i18nKey = HREF_TO_I18N_KEY[href];
   if (i18nKey) {
     const translated = t(i18nKey);
     if (typeof translated === "string" && translated !== i18nKey) return translated;
+  }
+  // Fallback: CRM custom pageLabels override
+  const pageLabelKey = HREF_TO_PAGE_LABEL[href];
+  if (pageLabelKey && pageLabels?.[pageLabelKey]) {
+    const val = pageLabels[pageLabelKey];
+    if (typeof val === "string") return val;
   }
   return typeof label === "string" ? label : String(label ?? "");
 }
