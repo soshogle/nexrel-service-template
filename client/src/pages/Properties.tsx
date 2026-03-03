@@ -291,7 +291,8 @@ export default function Properties({ defaultListingType, defaultPropertyType, pr
       price: p.price, priceLabel: p.priceLabel, bedrooms: p.bedrooms, bathrooms: p.bathrooms, listingType: p.listingType,
     }));
     pageCtx.setPageContext({ path: location, pageType: "listings", visibleListings: summaries, selectedListing: null });
-  }, [pageCtx, location, sortedProperties, defaultListingType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, sortedProperties, defaultListingType]);
 
   const resetFilters = () => {
     setPropertyType("all");

@@ -273,7 +273,7 @@ export default function PropertyDetail() {
       description: property.description,
     };
     pageCtx.setPageContext({ path: location, pageType: "property", visibleListings: [], selectedListing: summary });
-  }, [pageCtx, location, property]);
+  }, [location, property]);
 
   const formatPrice = (price: unknown, label?: unknown) => {
     const num = parseFloat(safeStr(price, "0"));
